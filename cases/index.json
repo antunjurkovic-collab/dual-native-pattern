@@ -1,0 +1,232 @@
+{
+    "version": "1.0",
+    "items": [
+        {
+            "platform": "Cisco Meraki",
+            "domain": "Networking/IoT",
+            "level": 2,
+            "hr_example": "Dashboard device page",
+            "mr_example": "/api/v1/devices/{serial}",
+            "rid_example": "Q2XX-XXXX-XXXX",
+            "cid_example": "firmware:v15.21.3+config:hash:abc123",
+            "key_gaps": [
+                "No HR<->MR deep links",
+                "No shared CID",
+                "No org-wide machine index"
+            ],
+            "recommended_upgrades": [
+                "Add bidirectional links",
+                "Expose per-resource CID",
+                "Publish org Resource Index with since=timestamp support"
+            ],
+            "equivalence_scope": "Device status, firmware version, configuration must match between Dashboard and API",
+            "file": "meraki.md"
+        },
+        {
+            "platform": "Stripe",
+            "domain": "Payments/Fintech",
+            "level": 2,
+            "hr_example": "Dashboard customer page",
+            "mr_example": "/v1/customers/{id}",
+            "rid_example": "cus_1234567890",
+            "cid_example": "last_updated:1642512000",
+            "key_gaps": [
+                "No consistent HR<->MR links",
+                "No formal CIDs for reports",
+                "No account-scoped Resource Index"
+            ],
+            "recommended_upgrades": [
+                "Add dashboard_url in MR and MR link in HR",
+                "Define CIDs for entities and reports",
+                "Publish account Resource Index"
+            ],
+            "equivalence_scope": "Customer data, subscription status, payment amounts must match between Dashboard and REST API",
+            "file": "stripe.md"
+        },
+        {
+            "platform": "GitHub",
+            "domain": "Developer Tools",
+            "level": 2,
+            "hr_example": "Pull Request web page",
+            "mr_example": "REST /repos/{owner}/{repo}/pulls/{number} or GraphQL node",
+            "rid_example": "octocat/Hello-World#123",
+            "cid_example": "head_sha:abc123+checks:def456+updated_at:2025-01-15",
+            "key_gaps": [
+                "Missing HR->MR links",
+                "No repo-level Resource Index",
+                "Implicit equivalence for aggregates"
+            ],
+            "recommended_upgrades": [
+                "Add rel=alternate links on HTML pages",
+                "Publish repo/org Resource Index",
+                "Expose composite CIDs for PR state"
+            ],
+            "equivalence_scope": "PR title, state, head commit SHA, mergeable status, required checks must match between Web UI and API",
+            "file": "github.md"
+        },
+        {
+            "platform": "Wikidata",
+            "domain": "Knowledge Graphs",
+            "level": 3,
+            "hr_example": "Entity page (e.g., Q42)",
+            "mr_example": "SPARQL endpoint / RDF/JSON entity",
+            "rid_example": "Q42",
+            "cid_example": "lastrevid:987654321",
+            "key_gaps": [
+                "No unified live index for incremental sync"
+            ],
+            "recommended_upgrades": [
+                "Treat lastrevid as CID",
+                "Publish incremental entity index"
+            ],
+            "equivalence_scope": "Entity labels, properties, claims, lastrevid must match between web page and SPARQL/API",
+            "file": "wikidata.md"
+        },
+        {
+            "platform": "Digital Twin Platforms",
+            "domain": "Industrial IoT",
+            "level": 2,
+            "hr_example": "3D twin view",
+            "mr_example": "MQTT/OPC UA topics and twin APIs",
+            "rid_example": "dtmi:factory:boiler:101",
+            "cid_example": "version:v42+timestamp:2025-01-15T10:00:00Z",
+            "key_gaps": [
+                "No consistent HR<->MR links",
+                "No consolidated asset Resource Index"
+            ],
+            "recommended_upgrades": [
+                "Add deep links between visuals and data endpoints",
+                "Use twin version/timestamp as CID",
+                "Publish asset/twin index"
+            ],
+            "equivalence_scope": "Twin properties, telemetry values, relationship graph must match between 3D view and MQTT/REST APIs",
+            "file": "digital-twin.md"
+        },
+        {
+            "platform": "Databricks",
+            "domain": "Data & AI",
+            "level": 2,
+            "hr_example": "Jobs run page, table explorer",
+            "mr_example": "REST: jobs, clusters, UC tables",
+            "rid_example": "catalog.schema.orders_table",
+            "cid_example": "delta_version:42",
+            "key_gaps": [
+                "Inconsistent deep links",
+                "No uniform CIDs for control plane",
+                "No consolidated workspace index"
+            ],
+            "recommended_upgrades": [
+                "Standardize hr_url in MR and MR links in HR",
+                "Define object CIDs (spec hash/version)",
+                "Generate workspace Resource Index"
+            ],
+            "equivalence_scope": "Table schema, partition spec, row counts, job run status must match between Workspace UI and REST API",
+            "file": "databricks.md"
+        },
+        {
+            "platform": "Data.gov",
+            "domain": "Open Data",
+            "level": 3,
+            "hr_example": "Dataset landing page",
+            "mr_example": "CKAN API and DCAT/data.json",
+            "rid_example": "dataset-id-12345",
+            "cid_example": "metadata_modified:2025-01-15T10:00:00Z",
+            "key_gaps": [
+                "Inconsistent HR<->MR links",
+                "CID not uniformly exposed",
+                "No incremental index emphasis"
+            ],
+            "recommended_upgrades": [
+                "Ensure landingPage/API linkage in both directions",
+                "Use metadata_modified/checksum as CID",
+                "Treat DCAT as official index with since= support"
+            ],
+            "equivalence_scope": "Dataset metadata, distribution URLs, modified timestamps must match between portal and CKAN API",
+            "file": "data-gov.md"
+        },
+        {
+            "platform": "Shopify",
+            "domain": "E-commerce",
+            "level": 2,
+            "hr_example": "Admin product page",
+            "mr_example": "GraphQL Admin API / REST /v1/products/{id}",
+            "rid_example": "gid://shopify/Product/1234567890",
+            "cid_example": "updated_at:2025-01-15T10:00:00Z",
+            "key_gaps": [
+                "No consistent HR<->MR links",
+                "No shared CID across UI/API",
+                "No shop-scoped Resource Index"
+            ],
+            "recommended_upgrades": [
+                "Expose GID and API link in HR; add human_url in MR",
+                "Use version hash/timestamp as CID across HR/MR",
+                "Publish /llm-sitemap.json with since=timestamp support"
+            ],
+            "equivalence_scope": "Product name, price, inventory, variants must match between Admin UI and GraphQL API",
+            "file": "shopify.md"
+        },
+        {
+            "platform": "Salesforce",
+            "domain": "CRM",
+            "level": 2,
+            "hr_example": "Lightning record page",
+            "mr_example": "REST sobjects/{type}/{id} / Bulk / Streaming",
+            "rid_example": "0011g00000ABCDEF",
+            "cid_example": "LastModifiedDate:2025-01-15T10:00:00Z",
+            "key_gaps": [
+                "No HR->MR record links",
+                "No formal shared CID across UI/API",
+                "No org-scoped Resource Index"
+            ],
+            "recommended_upgrades": [
+                "Add record API link in HR; hr_url in MR",
+                "Use last-modified/version as CID; enforce stale-write checks",
+                "Publish org catalog with since=timestamp support"
+            ],
+            "equivalence_scope": "Record fields, related objects, last modified date must match between Lightning UI and REST API",
+            "file": "salesforce.md"
+        },
+        {
+            "platform": "OData Services",
+            "domain": "Data APIs",
+            "level": 2,
+            "hr_example": "Dashboard/app consuming feed",
+            "mr_example": "OData service root + $metadata + entity sets",
+            "rid_example": "Products(123)",
+            "cid_example": "ETag:W/\"datetime'2025-01-15T10:00:00'\"",
+            "key_gaps": [
+                "No HR<->MR pairing",
+                "ETags not surfaced as shared CIDs",
+                "No curated Resource Index"
+            ],
+            "recommended_upgrades": [
+                "Show data source link in HR; Link header to viewer from MR",
+                "Treat ETag as CID across HR/MR",
+                "Provide curated index of key entity sets"
+            ],
+            "equivalence_scope": "Entity properties, navigation properties, timestamps must match between dashboard and OData endpoint",
+            "file": "odata.md"
+        },
+        {
+            "platform": "OGC & STAC",
+            "domain": "Geospatial",
+            "level": 2,
+            "hr_example": "Map/layer HTML view",
+            "mr_example": "STAC items/assets, OGC APIs (WMS/WFS/WCS)",
+            "rid_example": "stac:collection/item-12345",
+            "cid_example": "checksum:sha256:abc123",
+            "key_gaps": [
+                "Inconsistent HR<->MR links",
+                "No well-known entry point",
+                "CIDs not consistently exposed"
+            ],
+            "recommended_upgrades": [
+                "Add hr_url in STAC/OGC; link to exact MR from HR",
+                "Expose /.well-known entry or DCAT mapping",
+                "Use checksums/ETag/Last-Modified as CID"
+            ],
+            "equivalence_scope": "Asset metadata, checksums, spatial/temporal extents must match between map viewer and API",
+            "file": "ogc-stac.md"
+        }
+    ]
+}
