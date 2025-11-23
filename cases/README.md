@@ -13,13 +13,21 @@ Each case follows the same structure:
 
 ## Cases Included
 
+### 🏆 Reference Implementations
+
+- **[WordPress](wordpress.md)** [Domain: CMS, Level: 4]
+  **Reference implementation** demonstrating both internal agentic workflows (DNI plugin with block mutations, `If-Match` concurrency) and public distribution (TCT with zero-fetch). Proven at scale with 5,700+ production URLs.
+
+- **[Model Context Protocol (MCP)](mcp.md)** [Domain: AI Infrastructure, Requires Level: 4]
+  **Integration pattern** showing why Dual-Native is the architectural prerequisite for robust MCP servers. Demonstrates safe read/write operations for AI agents with optimistic concurrency and structural mutations.
+
 ### Payments
-- **[Stripe](stripe.md)** [Domain: Payments, Approx. Level: 2]
-  Dashboard + REST API with strong HR/MR surfaces; missing explicit CID/DNC for reports and aggregates
+- **[Stripe](stripe.md)** [Domain: Payments, Approx. Level: 4]
+  Dashboard + REST API with strong HR/MR surfaces; full CRUD via API with idempotent writes
 
 ### Developer Tools
-- **[GitHub](github.md)** [Domain: Developer Tools, Approx. Level: 2]
-  Web UI + REST/GraphQL APIs; strong informal dual-native pattern, lacks formal CID exposure and resource index
+- **[GitHub](github.md)** [Domain: Developer Tools, Approx. Level: 4]
+  Web UI + REST/GraphQL APIs; strong informal dual-native pattern with full repository/issue/PR write operations
 
 - **[Shopify](shopify.md)** [Domain: E-commerce, Approx. Level: 2]
   Admin UI + GraphQL API; bidirectional via documentation, needs CID validators for product/inventory state

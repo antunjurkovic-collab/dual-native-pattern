@@ -741,6 +741,84 @@ Good:
 - Implement backoff when CID changes rapidly (avoid thundering herd)
 - Log zero-fetch rates for observability
 
+### 4.8 Structural Mutations (The Write Path)
+
+**Requirement 4.8.1**: In dual-native systems that support write operations, agents MUST NOT modify the Human Representation (HR) directly (e.g., scraping and POSTing HTML), as this risks corruption and race conditions.
+
+Instead, agents MUST act on the **Machine Representation (MR)** using **Structural Mutations**—atomic operations that modify system state in a way that guarantees integrity in both representations.
+
+#### 4.8.1 Mutation Types
+
+Structural Mutations are domain-specific atomic operations. Common patterns include:
+
+1. **Append**: Add a discrete unit of content to the end of a resource
+   - **CMS**: Appending a block to a document
+   - **Fintech**: Creating a new transaction
+   - **IoT**: Logging a device event
+
+2. **Insert**: Inject a unit at a specific logical position
+   - **CMS**: Inserting a heading at a specific index in the block structure
+   - **Database**: Inserting a row at a specific sequence
+   - **Workflow**: Adding a step at a specific stage
+
+3. **Update**: Modify the data of a specific unit identified by ID
+   - **CMS**: Updating block content by block ID
+   - **Fintech**: Updating charge metadata
+   - **IoT**: Setting device state
+
+4. **Delete**: Remove a specific unit
+   - **CMS**: Removing a block by ID
+   - **Database**: Deleting a record
+   - **Fintech**: Voiding a charge
+
+#### 4.8.2 Projection Responsibility
+
+**Requirement 4.8.2**: The system is responsible for projecting MR mutations back into the HR.
+
+- **MUST**: Changes to the MR MUST be immediately reflected in the HR (or within documented consistency bounds)
+- **MUST**: The projection MUST preserve semantic equivalence
+- **MUST**: The system MUST recompute the CID after mutations
+
+**Examples**:
+- **CMS**: Serializing JSON blocks into HTML with Gutenberg comments
+- **Fintech**: Updating dashboard UI when a charge is created via API
+- **IoT**: Moving a physical dial when an API changes temperature setpoint
+
+#### 4.8.3 Optimistic Concurrency
+
+**Requirement 4.8.3**: Write operations SHOULD support optimistic concurrency control to prevent lost updates.
+
+**Recommended Pattern**:
+1. Client reads MR and obtains current CID
+2. Client computes desired mutation
+3. Client submits mutation with `If-Match: <CID>` (or domain equivalent)
+4. System verifies CID matches current state
+5. If match: apply mutation, recompute CID, return new CID
+6. If mismatch: reject with 412 Precondition Failed (or domain equivalent)
+
+**Domain Examples**:
+- **HTTP**: `If-Match` header with ETag
+- **Database**: WHERE clauses on version columns
+- **Fintech**: Idempotency keys (Stripe)
+- **Healthcare**: FHIR conditional updates
+
+#### 4.8.4 Drift Prevention
+
+**Requirement 4.8.4**: Systems MUST prevent **representation drift**—when HR and MR fall out of semantic equivalence.
+
+**Drift occurs when**:
+- A human edits the HR in a way the MR cannot represent
+- Asynchronous updates cause temporary inconsistency
+- System bugs or race conditions cause desynchronization
+
+**Prevention Strategies**:
+1. **Structured Editors**: Use editors that work on the MR (e.g., Gutenberg block editor), preventing invalid HR edits
+2. **Event Sourcing**: Make MR the source of truth; HR is always derived
+3. **Validation**: Reject HR edits that cannot be represented in MR
+4. **Monitoring**: Alert when CID(HR) ≠ CID(MR)
+
+**Consistency Guarantee**: Dual-native systems MUST ensure that any change to the HR triggers a re-computation of the MR and its CID. The two representations must remain eventually consistent (or strictly consistent, depending on domain requirements).
+
 ---
 
 ## 5. DNC Data Model
@@ -930,29 +1008,38 @@ Implementations typically evolve through **maturity levels**:
 
 **Recommendation**: Add CID to achieve Level 3.
 
-#### 6.2.4 Level 3 – HR + MR + CID Synchronization
+#### 6.2.4 Level 3 – Optimized (Zero-Fetch)
 
 **Characteristics**:
 - CID validators exposed
 - Zero-fetch optimization enabled
 - Semantic equivalence enforced via automated tests
 - Monitoring for drift
+- Dual-Native Catalog (DNC) published for efficient discovery
 
-**Conformance**: **Conformant** (recommended level).
+**Conformance**: **Conformant** (recommended level for read-only systems).
 
-**Recommendation**: Publish DNC to achieve Level 4.
+**Recommendation**: Add write capabilities to achieve Level 4.
 
-#### 6.2.5 Level 4 – Full Dual-Native with DNC
+#### 6.2.5 Level 4 – Agentic (Read/Write)
 
 **Characteristics**:
-- Dual-Native Catalog (DNC) published
-- Governance and observability tooling
-- Automated validation and monitoring
-- Complete discovery, zero-fetch, and compliance
+- All Level 3 capabilities (bidirectional linking, CID, zero-fetch, DNC)
+- **Structural Mutations**: Agents can modify system state via MR without corrupting HR
+- **Atomic Operations**: Insert, append, update, delete operations on MR
+- **Optimistic Concurrency**: Write operations support `If-Match` or equivalent to prevent lost updates
+- **Drift Prevention**: System ensures HR ↔ MR consistency after writes
+- **Actuator Access**: Agents can safely read AND write to the system
 
-**Conformance**: **Fully conformant** (best-in-class).
+**Conformance**: **Fully conformant** (agentic/best-in-class).
 
-**Recommendation**: This is the target state for mature implementations.
+**Use Cases**:
+- **CMS**: AI agents editing content blocks (e.g., WordPress with DNI plugin)
+- **Fintech**: AI agents creating/updating transactions (e.g., Stripe API)
+- **IoT**: AI agents controlling device state (e.g., thermostat APIs)
+- **Version Control**: AI agents committing code changes (e.g., GitHub API)
+
+**Recommendation**: This is the target state for systems enabling autonomous AI agents.
 
 #### 6.2.6 Informal Platform Mapping (Non-Normative)
 
@@ -960,14 +1047,15 @@ Many production platforms exhibit characteristics of dual-native design, though 
 
 | Platform | Approximate Level | Characteristics |
 |----------|-------------------|-----------------|
-| **Stripe** | ~Level 2 | Dashboard (HR) + REST API (MR), bidirectional discovery via documentation |
-| **GitHub** | ~Level 2 | Web UI (HR) + REST/GraphQL APIs (MR), API links in UI, no formal CID |
-| **Wikidata** | ~Level 3 | Web pages (HR) + SPARQL endpoint (MR), revision IDs act as CID |
-| **Databricks** | ~Level 2 | Workspace UI (HR) + REST API (MR), bidirectional linking |
-| **Cisco Meraki** | ~Level 2 | Dashboard (HR) + Dashboard API (MR), API documentation linked |
-| **Data.gov** | ~Level 3 | Web portal (HR) + CKAN API (MR), metadata versioning |
+| **Stripe** | ~Level 4 | Dashboard (HR) + REST API (MR), full CRUD via API, idempotent writes, read/write symmetry |
+| **GitHub** | ~Level 4 | Web UI (HR) + REST/GraphQL APIs (MR), full repository/issue/PR write operations via API |
+| **WordPress (DNI)** | ~Level 4 | Editor (HR) + JSON MR, block insertion API with `If-Match`, CID validation, structural mutations |
+| **Wikidata** | ~Level 3 | Web pages (HR) + SPARQL endpoint (MR), revision IDs act as CID, read-optimized |
+| **Databricks** | ~Level 2-4 | Workspace UI (HR) + REST API (MR), bidirectional linking, write APIs for jobs/clusters |
+| **Cisco Meraki** | ~Level 4 | Dashboard (HR) + Dashboard API (MR), full device configuration via API |
+| **Data.gov** | ~Level 3 | Web portal (HR) + CKAN API (MR), metadata versioning, read-focused |
 
-**Note:** These platforms typically lack explicit semantic equivalence guarantees, standardized DNC, or formal conformance declarations. This specification provides a framework to make such implementations conformant.
+**Note:** These platforms typically lack explicit semantic equivalence guarantees or formal conformance declarations. Level 4 platforms demonstrate write capabilities but may not implement all drift prevention mechanisms. This specification provides a framework to make such implementations fully conformant.
 
 ### 6.3 Declaring Conformance
 

@@ -10,22 +10,23 @@
 
 ## Overview
 
-This repository contains the complete **Dual-Native Pattern** document suite—an architectural approach for serving both human and AI users efficiently from unified systems.
+This repository contains the complete **Dual-Native Pattern** document suite—an architectural approach for **synchronizing** Human Representation (HR) and Machine Representation (MR) to enable safe, deterministic **reading and writing** by AI agents.
 
-The pattern is proven at scale through the **Collaboration Tunnel Protocol (TCT)**, demonstrating 83% bandwidth savings and 90%+ zero-fetch rates across 5,700+ production URLs.
+The pattern is proven at scale through multiple implementations: the **Collaboration Tunnel Protocol (TCT)** demonstrating 83% bandwidth savings for content distribution, and **production WordPress deployments** enabling safe agentic editing with optimistic concurrency control.
 
 ---
 
 ## Pattern at a Glance
 
-The Dual-Native Pattern provides a formal architecture for systems serving both human and AI users:
+The Dual-Native Pattern provides a formal architecture for systems serving both human and AI users with safe read/write capabilities:
 
-- **Every resource has two representations**: HR (Human-optimized: HTML, dashboards, PDFs) and MR (Machine-optimized: JSON APIs, FHIR, Avro)
+- **Every resource has two synchronized representations**: HR (Human-optimized: HTML, dashboards, PDFs) and MR (Machine-optimized: JSON APIs, FHIR, Avro)
 - **Bidirectional linking**: Navigate seamlessly between HR ↔ MR with explicit links (not just documentation)
 - **Semantic equivalence**: HR and MR represent the same content at the same point in time, verified through Content Identity validators (CID)
 - **Zero-fetch optimization**: AI agents skip redundant downloads when CID matches cached version (83% bandwidth savings observed)
+- **Structural Mutations**: AI agents can safely modify system state via the MR without corrupting the HR, using atomic operations and optimistic concurrency (demonstrated in WordPress, Stripe, GitHub)
 
-**Real-world evidence**: 11+ platforms already implement informal dual-native patterns (Stripe, GitHub, Databricks, Wikidata). See [Case Library](cases/README.md) for detailed analysis.
+**Real-world evidence**: 11+ platforms already implement informal dual-native patterns for reading (Stripe, GitHub, Databricks, Wikidata). Write capabilities are demonstrated through production WordPress deployments and validated via Model Context Protocol (MCP) integrations. See [Case Library](cases/README.md) for detailed analysis.
 
 ---
 
