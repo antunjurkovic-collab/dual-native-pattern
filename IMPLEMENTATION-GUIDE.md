@@ -78,6 +78,8 @@ The Core Specification requires bidirectional linking (HR ↔ MR) and a Dual-Nat
 
 ### 2.1 File Systems
 
+**Core-Spec Mapping**: This section illustrates how to satisfy CORE-SPEC §4.1 (Resource Identity), §4.2 (Content Identity), §4.4 (Bidirectional Linking), and §4.6 (Discovery via DNC) in the context of file systems.
+
 **Challenge**: Files lack native metadata for bidirectional linking.
 
 #### Option 1: Extended Attributes (xattr)
@@ -205,6 +207,8 @@ setfattr -n user.cid -v "sha256:abc123..." /home/docs/report.pdf
 ---
 
 ### 2.2 Database Systems
+
+**Core-Spec Mapping**: This section illustrates how to satisfy CORE-SPEC §4.1 (Resource Identity), §4.2 (Content Identity), §4.4 (Bidirectional Linking), and §4.6 (Discovery via DNC) in the context of database systems.
 
 **Challenge**: Databases have schemas, not URLs. Need to link table views to API endpoints.
 
@@ -368,6 +372,8 @@ SELECT MAX(row_version) FROM customers;
 
 ### 2.3 IoT Protocols (MQTT, CoAP)
 
+**Core-Spec Mapping**: This section illustrates how to satisfy CORE-SPEC §4.1 (Resource Identity), §4.2 (Content Identity), §4.4 (Bidirectional Linking), and §4.6 (Discovery via DNC) in the context of IoT protocols.
+
 #### 2.3.1 MQTT (Message Queuing Telemetry Transport)
 
 **Challenge**: MQTT is lightweight; minimal overhead for metadata.
@@ -486,6 +492,8 @@ HR (Dashboard) → MR:
 
 ### 2.4 Streaming Systems (Kafka, Pulsar)
 
+**Core-Spec Mapping**: This section illustrates how to satisfy CORE-SPEC §4.1 (Resource Identity), §4.2 (Content Identity), §4.4 (Bidirectional Linking), and §4.6 (Discovery via DNC) in the context of streaming systems.
+
 **Challenge**: Topics produce continuous streams, not static resources.
 
 #### Kafka Implementation
@@ -559,6 +567,8 @@ for message in consumer:
 ---
 
 ### 2.5 Cloud Storage (S3, Azure Blob, GCS)
+
+**Core-Spec Mapping**: This section illustrates how to satisfy CORE-SPEC §4.1 (Resource Identity), §4.2 (Content Identity), §4.4 (Bidirectional Linking), and §4.6 (Discovery via DNC) in the context of cloud storage.
 
 **Challenge**: Object storage lacks native linking metadata.
 

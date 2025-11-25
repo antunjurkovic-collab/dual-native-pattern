@@ -437,6 +437,50 @@ This section defines the **normative, protocol-agnostic requirements** for imple
 - ETags on individual endpoints (HR ETag, MR ETag) can differ as they reflect different serializations
 - The catalog's `content_id` field represents the logical content version shared by both representations
 
+#### 4.2.3 Validators, Conditional Reads, and Safe Writes (Cross-Domain)
+
+**CID as the Canonical Validator**:
+- CID MUST serve as the canonical validator for MR representations
+- Implementations MUST support conditional read and safe write semantics using CID
+
+**Conditional Read Behavior**:
+
+**Requirement 4.2.3.1**: When a client requests MR with a validator precondition:
+1. If the client's validator equals the current CID → Return "Not Modified" result (transport-specific) with no body
+2. If the client's validator differs from the current CID → Return full MR representation with current CID
+
+**Transport-Specific Mappings**:
+- HTTP: 304 Not Modified response with ETag header
+- gRPC: Empty response with metadata carrying current version
+- MQTT: Omit message body, publish version-only message
+- GraphQL: Null data with extensions carrying freshness metadata
+
+**Safe Write Behavior**:
+
+**Requirement 4.2.3.2**: Mutations that modify dual-native resources MUST accept a validator precondition:
+1. Client submits mutation with expected CID (validator)
+2. If current CID matches expected CID → Apply mutation, return new CID (and optionally new MR or delta)
+3. If current CID differs from expected CID → Return "Precondition Failed" result; no mutation applied
+
+**Transport-Specific Mappings**:
+- HTTP: `If-Match` header; 412 Precondition Failed on mismatch
+- gRPC: version field in request metadata; FAILED_PRECONDITION status on mismatch
+- Database: `WHERE rowversion = :cid` clause; zero rows affected on mismatch
+- Streaming: expected offset/position in produce request; rejection on mismatch
+
+**Rationale**: Conditional reads enable zero-fetch optimization (skip unchanged content). Safe writes prevent race conditions where agents overwrite human edits based on stale state.
+
+**Example Flow (HTTP)**:
+```
+1. Agent reads MR → receives CID "abc123"
+2. Human edits HR → CID changes to "xyz789"
+3. Agent attempts write with If-Match: "abc123"
+4. Server returns 412 Precondition Failed
+5. Agent re-reads MR with new CID, retries write
+```
+
+**Result**: Zero data loss. Agent's update is based on current content, not stale state.
+
 ### 4.3 Dual Interfaces
 
 **Requirement 4.3.1**: For each RID, implementations MUST provide:
@@ -471,6 +515,37 @@ This section defines the **normative, protocol-agnostic requirements** for imple
 - Use domain-standard formats (JSON, Avro, Protobuf, FHIR, GeoJSON)
 
 **Examples**: JSON APIs, Avro streams, FHIR resources, GeoJSON
+
+#### 4.3.3 MR Format Profiles
+
+**Requirement 4.3.3**: A resource MAY expose multiple MR profiles, each optimized for different consumption patterns.
+
+**Common MR Profile Categories**:
+
+1. **Structured MR**:
+   - Machine-readable structured data with schema
+   - Formats: JSON, Avro, Protobuf, FHIR, GeoJSON, Parquet
+   - Use case: API consumption, data pipelines, schema evolution
+   - Example: Blog article as JSON with title, content, author, metadata
+
+2. **Text MR**:
+   - Text-based representation optimized for language models and text processing
+   - Formats: Markdown, plain text, reStructuredText
+   - Use case: LLM consumption, RAG (Retrieval-Augmented Generation), content analysis
+   - Example: Blog article as Markdown preserving headings, lists, emphasis
+
+3. **Binary MR**:
+   - Compact binary serialization for high-throughput systems
+   - Formats: CBOR, MessagePack, Protocol Buffers binary, Avro binary
+   - Use case: Streaming, IoT, inter-service communication
+   - Example: Sensor reading as CBOR for efficient transmission
+
+**Semantic Equivalence Across Profiles**:
+- All MR profiles for a given RID at a given CID MUST represent semantically equivalent content
+- The equivalence scope (Section 4.5) MUST be consistent across all profiles
+- DNC entries SHOULD advertise available MR profiles for each RID (see Section 5)
+
+**Rationale**: Different agents have different optimization needs (structure vs tokens vs bandwidth). Multiple MR profiles allow publishers to serve diverse consumption patterns while maintaining semantic equivalence.
 
 ### 4.4 Bidirectional Linking
 
@@ -771,6 +846,56 @@ Structural Mutations are domain-specific atomic operations. Common patterns incl
    - **Database**: Deleting a record
    - **Fintech**: Voiding a charge
 
+#### 4.8.1.1 Addressable Content Units and Atomic Operations
+
+**Requirement 4.8.1.1**: For structured resources, implementations SHOULD expose an addressing scheme for sub-units and support atomic operations at that address.
+
+**Addressable Content Units**:
+- Content MAY be composed of discrete, addressable units (blocks, records, events, steps)
+- Each unit SHOULD be uniquely identifiable within the resource (by index, path, or ID)
+
+**Addressing Schemes by Domain**:
+- **CMS/Documents**: Block index (0-based), block ID (UUID), JSON path ($.blocks[2])
+- **Databases**: Primary key, row identifier, partition key + sort key
+- **Streaming**: Event offset, timestamp range, message ID
+- **Healthcare**: FHIR resource path (e.g., `Patient.name[0]`), section identifier
+- **IoT**: Component path (e.g., `device.sensors.temperature`), telemetry stream ID
+
+**Atomic Operations at Address**:
+Implementations SHOULD support:
+- `append`: Add unit at end (equivalent to insert at index = length)
+- `prepend`: Add unit at beginning (equivalent to insert at index = 0)
+- `insert(address)`: Add unit at specific position (index, path, or ID)
+- `replace(address)`: Replace existing unit at address
+- `delete(address)`: Remove unit at address
+- `patch(address)`: Partial update of unit at address (RFC 6902 JSON Patch or domain equivalent)
+
+**Atomicity Requirements**:
+- Each operation MUST be all-or-nothing for the addressed units
+- Partial application is NOT acceptable (e.g., inserting 3 blocks must either insert all 3 or none)
+- Operations MUST preserve structural integrity (e.g., valid block order, referential integrity)
+
+**Rationale**: Addressable units enable safe, granular edits without full resource replacement. Atomic operations prevent partial corruption during concurrent updates.
+
+**Example (CMS)**:
+```
+# Insert heading at index 2
+POST /article/123/blocks
+{
+  "operation": "insert",
+  "index": 2,
+  "block": {"type": "heading", "level": 2, "content": "Key Findings"}
+}
+```
+
+**Example (Database)**:
+```sql
+-- Insert row at specific sequence
+INSERT INTO tasks (id, sequence, title, status)
+VALUES (gen_uuid(), 5, 'Review PR', 'pending')
+WHERE (SELECT COUNT(*) FROM tasks WHERE sequence >= 5) = 0; -- Atomic check
+```
+
 #### 4.8.2 Projection Responsibility
 
 **Requirement 4.8.2**: The system is responsible for projecting MR mutations back into the HR.
@@ -1057,6 +1182,83 @@ Many production platforms exhibit characteristics of dual-native design, though 
 
 **Note:** These platforms typically lack explicit semantic equivalence guarantees or formal conformance declarations. Level 4 platforms demonstrate write capabilities but may not implement all drift prevention mechanisms. This specification provides a framework to make such implementations fully conformant.
 
+#### 6.2.7 Legacy Encapsulation as Normative Migration Pattern
+
+**Requirement 6.2.7.1**: Legacy or unstructured resources SHOULD be represented as a single opaque unit in MR to enable incremental migration without requiring full content restructuring.
+
+**Pattern**: Legacy Encapsulation
+- Wrap legacy/unstructured content (HTML, plain text, binary) as a single "freeform" or "legacy" unit in MR
+- Allow additive structured units around the legacy payload
+- Enable incremental migration: new content uses structured MR, old content remains encapsulated
+
+**Examples by Domain**:
+
+**CMS (WordPress Classic Editor)**:
+```json
+{
+  "blocks": [
+    {
+      "type": "freeform",
+      "content": "<p>Legacy HTML content...</p><!-- Classic editor output -->"
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "New structured heading"
+    }
+  ]
+}
+```
+- Old posts: Single `freeform` block containing HTML
+- New content: Structured blocks can be appended without touching legacy content
+
+**Databases (Unstructured Text Columns)**:
+```json
+{
+  "id": "12345",
+  "legacy_notes": "Unstructured text from old system...",
+  "structured_metadata": {
+    "status": "active",
+    "tags": ["migration", "reviewed"]
+  }
+}
+```
+
+**File Systems (Binary Files)**:
+```json
+{
+  "file_path": "/docs/legacy-report.pdf",
+  "content_type": "application/pdf",
+  "legacy_binary": true,
+  "extracted_text": "OCR or text extraction for MR...",
+  "structured_annotations": [
+    {"page": 3, "type": "signature", "verified": true}
+  ]
+}
+```
+
+**IoT (Proprietary Binary Protocols)**:
+```json
+{
+  "device_id": "sensor-42",
+  "raw_payload": "base64-encoded-proprietary-format...",
+  "decoded_fields": {
+    "temperature": 22.5,
+    "humidity": 45
+  }
+}
+```
+
+**Benefits**:
+- **Zero Content Loss**: Legacy content preserved exactly as-is
+- **Incremental Migration**: New features use structured MR without rewriting all old content
+- **Safe Coexistence**: Structured and legacy units can exist in same resource
+- **Agent-Safe**: Agents can append/prepend structured units without touching legacy payload
+
+**Anti-Pattern**: Requiring full content restructuring before enabling dual-native (blocks migration burden)
+
+**Rationale**: Legacy encapsulation enables pragmatic adoption of dual-native patterns in systems with large existing content bases (databases, CMS, file systems, IoT).
+
 ### 6.3 Declaring Conformance
 
 Implementations SHOULD declare conformance in machine-readable metadata:
@@ -1200,6 +1402,83 @@ Implementations MAY adopt optional enhancements (integrity, immutability, evente
 
 **Note**: Declaring capabilities does not affect conformance level. Conformance is based solely on the core requirements (§ 4) and level definitions (§ 6.2).
 
+### 6.5 Implementation Observability and Conformance Testing
+
+**Requirement 6.5.1**: Implementations SHOULD collect hard metrics to verify conformance and operational health.
+
+**Recommended Observability Metrics**:
+
+1. **Performance Metrics**:
+   - MR endpoint latency (p50, p95, p99)
+   - HR endpoint latency (p50, p95, p99)
+   - DNC freshness lag (time between content update and catalog update)
+   - Payload size (HR vs MR bytes transferred)
+
+2. **Efficiency Metrics**:
+   - Zero-fetch hit rate (% of requests returning 304 Not Modified)
+   - Bandwidth savings (HR bytes - MR bytes, as percentage)
+   - Token savings (for LLM-optimized MR profiles)
+   - Database query reduction (HR queries vs MR queries)
+
+3. **Consistency Metrics**:
+   - Validator parity failures (catalog CID ≠ live MR CID)
+   - HR ↔ MR drift incidents (semantic equivalence violations)
+   - Synchronization lag (time for HR update to appear in MR)
+
+4. **Safety Metrics**:
+   - Optimistic concurrency failures (412 Precondition Failed count)
+   - Write conflict rate (concurrent edit attempts)
+   - Access control violations (unauthorized MR access attempts)
+
+**Conformance Test Suite**:
+
+Implementations SHOULD define or adopt a conformance test suite that validates:
+
+1. **CID Determinism**:
+   - Same resource state → same CID (repeated reads)
+   - Different resource state → different CID (after mutation)
+   - CID format matches declared validator type
+
+2. **HR ↔ MR Semantic Equivalence**:
+   - Test declared equivalence scope on sample resources
+   - Automated comparison of HR and MR claims
+   - Alert on drift exceeding tolerance threshold
+
+3. **Conditional Read / Safe Write Behavior**:
+   - Conditional GET with matching CID → 304 Not Modified (or equivalent)
+   - Conditional GET with mismatched CID → 200 OK with full MR
+   - Write with matching CID → Success + new CID
+   - Write with mismatched CID → 412 Precondition Failed (or equivalent)
+
+4. **DNC Freshness vs Live MR**:
+   - Catalog CID matches live MR ETag/validator
+   - Catalog RID resolves to valid HR and MR
+   - Bidirectional links are resolvable and correct
+
+**Test Automation Examples**:
+- HTTP: `curl` scripts validating ETag parity, 304 responses, If-Match behavior
+- Database: SQL queries checking LSN consistency, validator freshness
+- Streaming: Consumer offset validation, schema fingerprint checks
+
+**Conformance Report Format** (Informative):
+```json
+{
+  "conformance_level": 4,
+  "profile": "dual-native-core-1.0",
+  "test_date": "2025-01-15T10:00:00Z",
+  "tests_passed": 47,
+  "tests_failed": 0,
+  "metrics": {
+    "zero_fetch_rate": 0.87,
+    "payload_reduction": 0.56,
+    "validator_parity": 1.0
+  },
+  "validator_url": "https://github.com/org/dual-native-validator"
+}
+```
+
+**Rationale**: Metrics enable verification of conformance claims and operational monitoring. Test suites prevent regression and validate spec adherence.
+
 ---
 
 ## 7. Security Considerations (Summary)
@@ -1283,6 +1562,48 @@ For comprehensive threat models, domain-specific attack vectors, and detailed mi
 - Provide "public catalog" vs. "internal catalog" variants
 
 **Recommendation**: Consult privacy/compliance teams when publishing DNC.
+
+### 7.5 Access Tiers and Redaction Baseline
+
+**Normative Baseline for Authorization and Redaction**:
+
+**Requirement 7.5.1**: MR reads and mutations MUST be gated by existing authorization mechanisms (roles, capabilities, scopes, ACLs).
+
+**Requirement 7.5.2**: MR access control MUST be at least as restrictive as HR access control for the same resource.
+
+**Bad Example**: HR requires authentication, MR is publicly accessible → Privacy leak
+
+**Good Example**: Both HR and MR require the same authentication and authorization
+
+**Public MR Exposure**:
+
+**Requirement 7.5.3**: If MR is exposed publicly (without authentication), the default SHOULD be to expose only published/approved resources.
+
+**Implementation Guidance**:
+- Filter draft/unpublished content from public MR endpoints
+- Require authentication for draft content MR access
+- Document public vs. authenticated access tiers in DNC metadata
+
+**Sensitive Field Redaction**:
+
+**Requirement 7.5.4**: If sensitive fields (PII, credentials, internal IDs) are redacted from MR, implementations MUST choose one of:
+
+1. **CID over redacted view**: Compute CID over the redacted MR representation
+   - Pro: CID matches what clients receive
+   - Con: CID changes if redaction rules change, even if source content doesn't
+
+2. **CID excludes sensitive fields**: Define an exclude list; CID computation ignores those fields
+   - Pro: CID stable across redaction rule changes
+   - Con: Requires documented exclude list
+
+**Example Redaction Patterns**:
+- **Healthcare**: Redact patient SSN, insurance numbers from public FHIR MR
+- **Fintech**: Redact full credit card numbers, show only last 4 digits in MR
+- **HR Systems**: Redact salary, performance ratings from employee MR
+
+**Rationale**: Prevents accidental PII/credential exposure to AI agents. Access control must match HR to avoid privilege escalation via MR.
+
+**For detailed access tier patterns by domain**, see Implementation Guide Section 6 (planned).
 
 ---
 
