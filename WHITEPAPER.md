@@ -1,6 +1,6 @@
 # The Dual-Native Pattern: An Architecture for Humans and AI
 
-**Document Version:** 1.0
+**Document Version:** 1.2
 **Last Updated:** November 2025
 **Status:** Whitepaper (Non-Normative)
 **Author:** Antun Jurkovikj
@@ -288,6 +288,15 @@ Each case follows a consistent structure (Equivalence Scope, Current State, Patt
 - Semantic equivalence guarantees HR and MR stay in sync
 
 For complete normative requirements, see [Dual-Native Core Specification § 4](CORE-SPEC.md#4-cross-domain-core-requirements-normative).
+
+**Beyond the Core Principles**: Most mature deployments also adopt **secondary patterns** that build on the foundation above:
+- **Safe writes** with optimistic concurrency (validators prevent data loss)
+- **MR format profiles** (structured, text, binary) for different consumption patterns
+- **Incremental discovery** (efficient catalog polling and delta syncs)
+- **Legacy encapsulation** (wrap unstructured content as opaque units)
+- **Observability metrics** (zero-fetch rates, validator parity, drift detection)
+
+These secondary patterns are detailed in [CORE-SPEC § 4.2.3, 4.3.3, 4.8, 6.2.7, 6.5](CORE-SPEC.md) and [Implementation Guide § 3-5](IMPLEMENTATION-GUIDE.md).
 
 ---
 
@@ -971,9 +980,125 @@ If you answered "yes" to 3+ questions, dual-native design likely applies.
 
 ---
 
-## 11. Conclusion
+## 11. Limitations and Open Questions
 
-### 11.1 Recap of the Pattern
+The Dual-Native Pattern is intentionally ambitious: it tries to unify ideas from APIs, databases, streaming systems, and web architecture into a single mental model for AI-ready systems. That ambition comes with limits and open questions that we expect to refine through real-world use.
+
+### 11.1 Scope and Applicability
+
+Dual-Native is designed for systems where:
+
+- content is reused across multiple consumers (humans, agents, services), and
+- correctness, safety, and observability matter.
+
+For very small, one-off tools or static sites, the full pattern (MR, CID, DNC, safe writes, conformance testing) may be overkill. A simple read-only export or a single MR profile might be enough. The pattern does not try to replace every ad-hoc JSON API or static page; it targets systems where automation and coordination are long-lived concerns.
+
+**Open question:** how minimal can an implementation be and still deliver meaningful benefits for small or low-traffic systems?
+
+### 11.2 Adoption Cost and Incrementalization
+
+The pattern is intentionally layered (Levels 0–4). Even so, implementing:
+
+- a canonical MR,
+- stable CID computation,
+- DNC catalogs, and
+- conditional reads / safe writes
+
+requires non-trivial effort in existing systems.
+
+We provide incremental paths (e.g. HR↔MR first, then CID, then DNC, then safe writes), but there is still a learning curve and engineering cost, especially in legacy stacks and tightly coupled monoliths.
+
+**Open question:** what are the most effective "on-ramps" and reference migrations for large existing platforms beyond the examples we have so far?
+
+### 11.3 Interoperability and Fragmentation
+
+The Core-Spec deliberately avoids mandating a single transport or schema language. That makes the pattern applicable to databases, streaming, IoT, HTTP, and more—but it also risks fragmentation:
+
+- different teams may choose different MR shapes and profile conventions,
+- different transports may map validators and error semantics slightly differently,
+- different catalogs may expose different subsets of metadata.
+
+We provide cross-domain mapping guidance and a conformance matrix, but we do not yet have a broad ecosystem of interoperable Dual-Native implementations.
+
+**Open question:** which pieces should eventually be standardized (media types, profile identifiers, minimal DNC schema, etc.) and which should remain purely architectural guidance?
+
+### 11.4 Performance and Resource Trade-offs
+
+Dual-Native is designed for **efficiency** (zero-fetch reads, smaller MR payloads, incremental discovery), but it still introduces:
+
+- extra computation (canonicalization, CID calculation),
+- extra storage or indexing for DNC,
+- extra logic for conditional reads and safe writes.
+
+In most of our reference implementations, these costs are small compared to the savings from avoiding HTML scraping, repeated full fetches, or unsafe writes—but this depends on workload shape and infrastructure.
+
+**Open question:** in very high-throughput or ultra-low-latency environments, where are the exact break-even points between protocol complexity and operational benefit?
+
+### 11.5 Security, Privacy, and Policy
+
+The pattern includes security primitives:
+
+- clear HR↔MR equivalence requirements,
+- access tiers,
+- redaction strategies,
+- and recommendations for observability and conformance testing.
+
+However, it does not define:
+
+- how organizations should classify sensitive fields,
+- how MR should interact with data loss prevention,
+- how agent-facing MR interacts with legal or compliance obligations.
+
+Those remain site- and domain-specific choices.
+
+**Open question:** what additional guidance is needed for regulated environments (healthcare, finance, education) to safely adopt Dual-Native MR and DNC catalogs?
+
+### 11.6 Tooling and Developer Experience
+
+The current pattern is expressed as:
+
+- a conceptual model (pillars and behaviors),
+- a Core-Spec with conformance levels, and
+- an Implementation Guide with domain recipes.
+
+What is still emerging is a mature **tooling ecosystem**:
+
+- generators and validators for MR schemas and DNC,
+- canonicalization and CID libraries across languages,
+- test harnesses and dashboards for conformance and observability,
+- IDE / CLI tooling that makes Dual-Native "feel normal" for developers.
+
+Our existing reference implementations and validation scripts are a starting point, not a complete DX story.
+
+**Open question:** which tools make the biggest difference to adoption (schema tooling, conformance harnesses, SDKs, MCP bindings), and how much of that belongs in this project vs. external ecosystems?
+
+### 11.7 Agent Behavior and Human Oversight
+
+Dual-Native makes it *possible* to:
+
+- read MR efficiently,
+- write safely with optimistic concurrency,
+- and audit changes via CID chains and catalogs.
+
+It does not, by itself, guarantee:
+
+- that agents will make good decisions,
+- that prompts or objectives are well-designed,
+- or that humans are in the loop where they should be.
+
+Those are properties of the agent framework and governance model layered on top of Dual-Native.
+
+**Open question:** what patterns of human-in-the-loop oversight, audit logging, and policy enforcement pair best with Dual-Native so that safe writes and rich MR are used responsibly?
+
+---
+
+We expect many of these limitations and questions to be answered not by more theory, but by more practice: additional implementations, independent experiments, and feedback from teams trying to use Dual-Native in environments we have not yet touched. This whitepaper and specification should be read as a strong starting point, not as the final word on how AI-ready data and state layers must be built.
+
+---
+
+## 12. Conclusion
+
+### 12.1 Recap of the Pattern
 
 The Dual-Native Pattern addresses a critical challenge: **serving both human and AI users efficiently from a unified system**.
 
@@ -999,7 +1124,7 @@ The Dual-Native Pattern addresses a critical challenge: **serving both human and
 - Healthcare (FHIR)
 - Cloud storage (S3, Azure Blob)
 
-### 11.2 How to Use the Companion Documents
+### 12.2 How to Use the Companion Documents
 
 This whitepaper provides **context and motivation**. For implementation:
 
@@ -1011,7 +1136,7 @@ For specialized topics (created as needed):
 - **Security & Governance Guide**: Threat models, access control, compliance mapping
 - **Adoption & Maturity Playbook**: Roadmaps, metrics, organizational guidance
 
-### 11.3 Call to Action
+### 12.3 Call to Action
 
 Most organizations that serve both human and AI users will eventually benefit from dual-native design. The key questions are "how soon" and "where to start."
 

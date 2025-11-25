@@ -1,6 +1,6 @@
 # Dual-Native Pattern: Domain Implementation Guide
 
-**Document Version:** 1.0
+**Document Version:** 1.2
 **Last Updated:** November 2025
 **Status:** Implementation Guide (Non-Normative)
 **Author:** Antun Jurkovikj

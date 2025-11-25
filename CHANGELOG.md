@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2] - November 2025
+
+### Added
+
+**Documentation Polish and Completeness**
+- **WHITEPAPER.md**:
+  - Added § 5 "Beyond the Core Principles" - Secondary patterns callout highlighting safe writes, MR format profiles, incremental discovery, legacy encapsulation, and observability metrics with links to detailed spec sections
+  - Added § 11 "Limitations and Open Questions" - Comprehensive discussion of scope boundaries, adoption costs, interoperability challenges, performance trade-offs, security/privacy gaps, tooling needs, and agent oversight considerations
+  - Renumbered Conclusion to § 12
+
+- **CORE-SPEC.md**:
+  - Added § 4.2 "Wire-Integrity vs. Semantic Identity" - Clarification distinguishing wire-integrity digests (HTTP Content-Digest, RFC 9530) from CID (semantic versioning), explaining their different purposes and coexistence
+
+- **README.md**:
+  - Updated Overview (line 15) to mention wp-dual-native plugin implementation with block-level atomic operations
+
+### Changed
+
+**Version Increments**
+- Updated all document headers from v1.0 → v1.2:
+  - README.md
+  - WHITEPAPER.md
+  - CORE-SPEC.md
+  - IMPLEMENTATION-GUIDE.md
+- Updated README version table (all documents now show v1.2)
+- Updated README Document Suite Version from 1.0 → 1.2
+
+**Documentation Improvements**
+- Enhanced intellectual honesty by acknowledging pattern limitations and open questions
+- Improved navigability by calling out secondary patterns with direct spec links
+- Clarified distinction between transmission integrity (bytes) and content versioning (semantics)
+
+---
+
 ## [1.1] - November 2025
 
 ### Added

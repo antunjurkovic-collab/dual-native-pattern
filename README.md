@@ -1,6 +1,6 @@
 # The Dual-Native Pattern: Document Suite
 
-**Version:** 1.0
+**Version:** 1.2
 **Last Updated:** November 2025
 **Status:** Draft for Review
 
@@ -12,7 +12,7 @@
 
 This repository contains the complete **Dual-Native Pattern** document suite—an architectural approach for **synchronizing** Human Representation (HR) and Machine Representation (MR) to enable safe, deterministic **reading and writing** by AI agents.
 
-The pattern is proven at scale through multiple implementations: the **Collaboration Tunnel Protocol (TCT)** demonstrating 83% bandwidth savings for content distribution, and **production WordPress deployments** enabling safe agentic editing with optimistic concurrency control.
+The pattern is proven at scale through multiple implementations: the **Collaboration Tunnel Protocol (TCT)** demonstrating 83% bandwidth savings for content distribution, and **production WordPress deployments** (wp-dual-native plugin) enabling safe agentic editing with optimistic concurrency control and block-level atomic operations.
 
 ---
 
@@ -401,17 +401,17 @@ Under the following terms:
 
 | Document | Version | Last Updated | Status |
 |----------|---------|--------------|--------|
-| README.md | 1.0 | November 2025 | Draft |
-| WHITEPAPER.md | 1.0 | November 2025 | Draft for Review |
-| CORE-SPEC.md | 1.0 | November 2025 | Draft for Review |
-| IMPLEMENTATION-GUIDE.md | 1.0 | November 2025 | Draft for Review |
+| README.md | 1.2 | November 2025 | Draft |
+| WHITEPAPER.md | 1.2 | November 2025 | Draft for Review |
+| CORE-SPEC.md | 1.2 | November 2025 | Draft for Review |
+| IMPLEMENTATION-GUIDE.md | 1.2 | November 2025 | Draft for Review |
 
 **Versioning:** All documents will be versioned together. Updates to any document will increment the suite version.
 
 ---
 
 **Last Updated:** November 2025
-**Document Suite Version:** 1.0
+**Document Suite Version:** 1.2
 **Status:** Draft for Review
 
 **Start Reading:** [Whitepaper →](WHITEPAPER.md)

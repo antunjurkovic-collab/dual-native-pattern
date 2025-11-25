@@ -1,6 +1,6 @@
 # Dual-Native Pattern: Core Architecture and Requirements
 
-**Document Version:** 1.0
+**Document Version:** 1.2
 **Last Updated:** November 2025
 **Status:** Specification (Normative)
 **Author:** Antun Jurkovikj
@@ -436,6 +436,9 @@ This section defines the **normative, protocol-agnostic requirements** for imple
 - **Instead**: Expose a shared `content_id` field in the DNC/catalog for parity checking between HR and MR
 - ETags on individual endpoints (HR ETag, MR ETag) can differ as they reflect different serializations
 - The catalog's `content_id` field represents the logical content version shared by both representations
+
+**Wire-Integrity vs. Semantic Identity**:
+Implementations MAY also expose a separate **wire-integrity digest** computed over the final bytes delivered (for example, HTTP `Content-Digest` as defined in RFC 9530). This is **distinct from CID**, which tracks **semantic identity**. A wire-integrity digest detects transmission errors or tampering; CID tracks logical content version. Both serve different purposes and may coexist.
 
 #### 4.2.3 Validators, Conditional Reads, and Safe Writes (Cross-Domain)
 
