@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1] - November 2025
+
+### Added
+
+**Universal Pattern Enhancements**
+- **CORE-SPEC.md**:
+  - Added § 4.3.3 "MR Format Profiles" - Support for multiple MR profiles (structured JSON/Avro, text/Markdown, binary/CBOR) with formal requirements
+  - Added § 4.2.3 "Safe Writes & Validators" - Normative requirements for conditional mutations using validators (If-Match, version columns, offsets) with transport-specific mappings (HTTP, gRPC, databases, streaming)
+  - Added § 4.8.1.1 "Addressable Content Units" - Support for sub-resource addressing and atomic operations (append, prepend, insert, replace, delete, patch) with domain-specific addressing schemes
+  - Added § 7.5 "Access Tiers and Redaction" - Normative baseline for MR access control, redaction strategies (CID over redacted view vs CID excludes sensitive fields), and authorization requirements
+  - Added § 6.2.7 "Legacy Encapsulation" - Normative pattern for wrapping legacy/unstructured content as opaque units in MR, enabling incremental migration and safe coexistence
+  - Added § 6.5 "Observability & Conformance Testing" - Metrics recommendations (performance, efficiency, consistency, safety) and conformance test suite (CID determinism, semantic equivalence, conditional behavior, DNC freshness)
+
+- **IMPLEMENTATION-GUIDE.md**:
+  - Added CORE-SPEC cross-references to all 5 domain sections (File Systems, Databases, IoT, Streaming, Cloud Storage) mapping implementation patterns to normative requirements
+  - Added safe write examples for Databases (§ 2.2):
+    - PostgreSQL RowVersion pattern with conditional UPDATE and ROW_COUNT validation
+    - SQL Server ROWVERSION pattern with timestamp-based concurrency control
+    - API integration with If-Match/412 responses
+  - Added safe write examples for Streaming (§ 2.4):
+    - Kafka idempotent producer with exactly-once semantics and transactional writes
+    - Pulsar message deduplication with sequence IDs
+    - Expected offset validation patterns
+  - Added § 3.4 "Access Tiers and Redaction" with implementation guidance:
+    - Two redaction strategies with Python code examples
+    - Domain-specific patterns (Database RLS, Healthcare HIPAA, IoT admin vs public)
+    - Test matrix for validating redaction correctness
+
+**Narrative and Cross-Linking Improvements**
+- **README.md**:
+  - Updated "Pattern at a Glance" (line 23) to introduce MR format profiles concept
+  - Added conformance level cross-reference to Case Library section with link to CORE-SPEC § 6.2
+
+- **WHITEPAPER.md**:
+  - Updated § 5 "Pattern at a Glance" to introduce MR format profiles in Key Principles
+  - Updated § 5.1 MR definition to describe profiles (structured, text, binary) with shared RID/CID
+  - Added conformance level cross-reference to Case Library (§ 4.6) with link to CORE-SPEC § 6.2
+
+### Changed
+- Made dual-native pattern truly universal and protocol-agnostic:
+  - Emphasized cross-domain applicability (databases, IoT, streaming, file systems, cloud storage) beyond HTTP/web
+  - Added domain-native validator mappings (PostgreSQL LSN, SQL Server ROWVERSION, Kafka offset, HTTP ETag)
+  - Connected write-path patterns to optimistic concurrency control across all domains
+
+- Enhanced safety and security guidance:
+  - Connected abstract security requirements in CORE-SPEC to concrete implementation patterns in IMPLEMENTATION-GUIDE
+  - Added access control baseline requiring MR to be at least as restrictive as HR
+  - Provided practical redaction strategies with trade-offs and code examples
+
+### Improved
+- Case Library documentation now explicitly references conformance levels and links to formal definitions
+- Implementation Guide now provides bidirectional traceability between domain patterns and normative requirements
+- All documents now consistently introduce MR format profiles as first-class concept
+
+---
+
 ## [1.0] - November 2025
 
 ### Added

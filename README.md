@@ -20,7 +20,7 @@ The pattern is proven at scale through multiple implementations: the **Collabora
 
 The Dual-Native Pattern provides a formal architecture for systems serving both human and AI users with safe read/write capabilities:
 
-- **Every resource has two synchronized representations**: HR (Human-optimized: HTML, dashboards, PDFs) and MR (Machine-optimized: JSON APIs, FHIR, Avro)
+- **Every resource has two synchronized representations**: HR (Human-optimized: HTML, dashboards, PDFs) and MR (Machine-optimized: JSON APIs, FHIR, Avro). MR may be offered in multiple profiles (structured JSON/Avro, text/Markdown, binary/CBOR) optimized for different consumption patterns.
 - **Bidirectional linking**: Navigate seamlessly between HR ↔ MR with explicit links (not just documentation)
 - **Semantic equivalence**: HR and MR represent the same content at the same point in time, verified through Content Identity validators (CID)
 - **Zero-fetch optimization**: AI agents skip redundant downloads when CID matches cached version (83% bandwidth savings observed)
@@ -253,7 +253,7 @@ Many industry platforms already provide dual interfaces (HR + MR), though withou
 - **Geospatial**: OGC/STAC map viewers + APIs
 - And more...
 
-Each case shows current state, pattern gaps, recommended upgrades, and expected benefits.
+Each case shows current state, pattern gaps, recommended upgrades, and expected benefits. Case studies are tagged with their current conformance level (0-4) and recommended target level—see [CORE-SPEC § 6.2](CORE-SPEC.md#62-conformance-levels-04) for level definitions.
 
 ---
 

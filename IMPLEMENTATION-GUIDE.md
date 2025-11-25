@@ -356,6 +356,108 @@ SELECT MAX(row_version) FROM customers;
 3. Use Delta Lake version numbers as CID for zero-fetch optimization
 4. Publish DNC listing all tables/jobs with HR ↔ MR mappings
 
+#### Safe Writes (Optimistic Concurrency)
+
+**Challenge**: Prevent lost updates when multiple agents or users modify the same resource concurrently.
+
+**Pattern**: Use version columns or row-level validators in WHERE clauses to implement conditional writes.
+
+**PostgreSQL Example (RowVersion Column)**:
+
+```sql
+-- Add version column to table
+ALTER TABLE customers ADD COLUMN version INTEGER DEFAULT 1;
+
+-- Read operation: Client retrieves current version
+SELECT id, name, email, version FROM customers WHERE id = 123;
+-- Returns: {id: 123, name: "Alice", email: "alice@example.com", version: 5}
+
+-- Write operation: Client submits update with expected version
+UPDATE customers
+SET name = 'Alice Smith',
+    email = 'alice.smith@example.com',
+    version = version + 1  -- Increment version
+WHERE id = 123 AND version = 5;  -- Precondition: version must match
+
+-- Check result
+GET DIAGNOSTICS rows_affected = ROW_COUNT;
+
+-- If rows_affected = 0 → Precondition failed (another client updated the row)
+-- If rows_affected = 1 → Success, return new version (6)
+```
+
+**API Integration Example**:
+
+```http
+# 1. Agent reads resource
+GET /api/v1/customers/123 HTTP/1.1
+
+HTTP/1.1 200 OK
+ETag: "5"
+Content-Type: application/json
+
+{
+  "id": 123,
+  "name": "Alice",
+  "email": "alice@example.com",
+  "version": 5
+}
+
+# 2. Agent submits update with If-Match header
+PUT /api/v1/customers/123 HTTP/1.1
+If-Match: "5"
+Content-Type: application/json
+
+{
+  "name": "Alice Smith",
+  "email": "alice.smith@example.com"
+}
+
+# 3a. Success case (version matches)
+HTTP/1.1 200 OK
+ETag: "6"
+
+{
+  "id": 123,
+  "name": "Alice Smith",
+  "email": "alice.smith@example.com",
+  "version": 6
+}
+
+# 3b. Conflict case (version mismatch)
+HTTP/1.1 412 Precondition Failed
+ETag: "7"  # Current version
+
+{
+  "error": "Version conflict",
+  "expected_version": 5,
+  "current_version": 7,
+  "message": "Resource was modified by another client. Please re-read and retry."
+}
+```
+
+**SQL Server Example (ROWVERSION)**:
+
+```sql
+-- Add ROWVERSION column (automatically updated by SQL Server)
+ALTER TABLE customers ADD row_version ROWVERSION;
+
+-- Read with row_version
+SELECT id, name, email, row_version FROM customers WHERE id = 123;
+-- Returns: {id: 123, name: "Alice", email: "alice@example.com", row_version: 0x00000000000007D3}
+
+-- Conditional update using row_version
+UPDATE customers
+SET name = 'Alice Smith', email = 'alice.smith@example.com'
+WHERE id = 123 AND row_version = 0x00000000000007D3;
+
+-- Check @@ROWCOUNT
+-- If 0 → Precondition failed
+-- If 1 → Success, query new row_version and return
+```
+
+**Result**: Zero data loss. Agents cannot overwrite human edits based on stale state.
+
 #### Database Systems Implementation Checklist
 
 - [ ] **HR defined?** Identified dashboard views, BI tools, or web UIs for tables/views
@@ -552,6 +654,94 @@ for message in consumer:
     cid = f"offset:{message.offset}"
     print(f"Message CID: {cid}")
 ```
+
+#### Safe Writes (Expected Offset/Position)
+
+**Challenge**: Prevent duplicate messages or lost updates in streaming systems with concurrent producers.
+
+**Pattern**: Use expected offset or idempotency keys to implement conditional writes.
+
+**Kafka Example (Idempotent Producer)**:
+
+```python
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
+import json
+
+# 1. Enable idempotence (prevents duplicates)
+producer = KafkaProducer(
+    bootstrap_servers=['broker:9092'],
+    enable_idempotence=True,  # Exactly-once semantics
+    acks='all',
+    retries=3,
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
+# 2. Agent reads current high-water mark (CID)
+from kafka.admin import KafkaAdminClient
+admin = KafkaAdminClient(bootstrap_servers=['broker:9092'])
+offsets = admin.list_consumer_group_offsets('my-consumer-group')
+current_offset = offsets['sensor-readings'][0].offset  # partition 0
+# current_offset = 12345
+
+# 3. Agent produces message with transaction (atomic write)
+producer.begin_transaction()
+try:
+    # Send message
+    future = producer.send(
+        'sensor-readings',
+        value={'temperature': 23.5, 'timestamp': '2025-01-15T10:05:00Z'},
+        headers=[
+            ('expected_offset', str(current_offset).encode('utf-8')),
+            ('agent_id', b'ai-agent-42')
+        ]
+    )
+
+    # Commit transaction
+    producer.commit_transaction()
+
+    # Get new offset from result
+    record_metadata = future.get(timeout=10)
+    new_offset = record_metadata.offset
+    print(f"Success: Message written at offset {new_offset}")
+
+except KafkaError as e:
+    producer.abort_transaction()
+    print(f"Write failed: {e}")
+    # Agent should re-read current offset and retry
+```
+
+**Pulsar Example (Expected Position)**:
+
+```python
+import pulsar
+
+client = pulsar.Client('pulsar://localhost:6650')
+producer = client.create_producer('sensor-readings')
+
+# 1. Agent reads current message ID (CID)
+reader = client.create_reader('sensor-readings', pulsar.MessageId.latest)
+current_msg_id = reader.get_last_message_id()
+# current_msg_id = (3, 0, 12345)
+
+# 2. Agent produces message
+try:
+    msg_id = producer.send(
+        content=b'{"temperature": 23.5}',
+        properties={
+            'expected_msg_id': str(current_msg_id),
+            'agent_id': 'ai-agent-42'
+        }
+    )
+    print(f"Success: Message written at {msg_id}")
+
+except pulsar.ProducerFenced as e:
+    # Another producer wrote to the topic
+    print(f"Write conflict: {e}")
+    # Agent should re-read current position and retry
+```
+
+**Result**: Exactly-once semantics. Agents cannot produce duplicate messages or overwrite based on stale stream position.
 
 #### Streaming Systems Implementation Checklist
 
@@ -923,6 +1113,142 @@ def update_content(rid, content, version):
         return  # Already applied
     apply_update(content)
 ```
+
+---
+
+### 3.4 Access Tiers and Redaction
+
+**See also**: CORE-SPEC §7.5 (Access Tiers and Redaction Baseline)
+
+**Risk**: MR endpoints exposed publicly or to unauthorized agents, leaking PII or sensitive data that HR restricts.
+
+**Pattern**: MR access control MUST be at least as restrictive as HR access control for the same resource.
+
+#### Access Tier Patterns by Domain
+
+**HTTP/Web**:
+```
+✅ Good:
+  HR (Blog Post): Public
+  MR (Blog API):  Public
+
+  HR (Admin Dashboard): Requires authentication
+  MR (Admin API):        Requires authentication + same roles
+
+❌ Bad:
+  HR (Admin Dashboard): Requires authentication
+  MR (Admin API):        No authentication → Privacy leak!
+```
+
+**Databases**:
+```sql
+-- ✅ Good: Row-level security applied to both views and APIs
+CREATE POLICY customer_isolation ON customers
+  USING (owner_id = current_user_id());
+
+-- HR (Dashboard view) and MR (API) both enforce same policy
+
+-- ❌ Bad: Dashboard enforces filtering, API exposes all rows
+-- Dashboard: SELECT * FROM customers WHERE owner_id = :user_id
+-- API: SELECT * FROM customers  -- Leaks other users' data!
+```
+
+**Healthcare (FHIR)**:
+```http
+# ✅ Good: Consistent redaction
+HR (Patient Portal):
+  Name: Alice Smith
+  DOB: 01/15/1990
+  SSN: ***-**-1234 (redacted)
+
+MR (FHIR Endpoint):
+{
+  "resourceType": "Patient",
+  "name": [{"family": "Smith", "given": ["Alice"]}],
+  "birthDate": "1990-01-15",
+  "identifier": [{"system": "SSN", "value": "***-**-1234"}]
+}
+```
+
+**IoT**:
+```
+✅ Good:
+  HR (Public Dashboard): Aggregate temperature (no device IDs)
+  MR (Public API):       Aggregate temperature (no device IDs)
+
+  HR (Admin Dashboard): Individual device telemetry
+  MR (Admin API):        Individual device telemetry (requires auth)
+```
+
+#### Redaction Strategies
+
+**1. CID Over Redacted View** (Recommended):
+```python
+def generate_mr(resource, user):
+    """Compute CID over what user actually sees"""
+    raw_data = fetch_resource(resource.rid)
+
+    # Apply access control and redaction
+    redacted_data = apply_redaction(raw_data, user.roles)
+
+    # Compute CID over redacted view
+    cid = compute_hash(canonical_json(redacted_data))
+
+    return {
+        "data": redacted_data,
+        "cid": cid  # Reflects user's view
+    }
+```
+
+**Pro**: CID matches what client receives
+**Con**: Different users see different CIDs for same resource
+
+**2. CID Excludes Sensitive Fields** (Alternative):
+```python
+def generate_mr(resource, user):
+    """Compute CID excluding redacted fields"""
+    raw_data = fetch_resource(resource.rid)
+    redacted_data = apply_redaction(raw_data, user.roles)
+
+    # Compute CID over non-sensitive fields only
+    cid_input = exclude_fields(raw_data, REDACTION_EXCLUDE_LIST)
+    cid = compute_hash(canonical_json(cid_input))
+
+    return {
+        "data": redacted_data,
+        "cid": cid  # Stable across redaction rule changes
+    }
+
+REDACTION_EXCLUDE_LIST = ["ssn", "credit_card", "password_hash"]
+```
+
+**Pro**: CID stable across redaction changes
+**Con**: Requires documented exclude list
+
+#### Public vs Authenticated Access Tiers
+
+**Default Rule**: If MR is exposed publicly, default to exposing only published/approved resources.
+
+**Implementation Checklist**:
+- [ ] Filter draft/unpublished content from public MR endpoints
+- [ ] Require authentication for draft content MR access
+- [ ] Document public vs. authenticated tiers in DNC metadata
+- [ ] Test with unauthorized client (should receive 401/403, not data)
+
+**Example DNC Entry with Access Tiers**:
+```json
+{
+  "rid": "patient/12345",
+  "hr": "https://portal.example.com/patients/12345",
+  "mr": "https://api.example.com/fhir/Patient/12345",
+  "cid": "sha256-abc123...",
+  "access_tier": "authenticated",
+  "required_scopes": ["patient.read"],
+  "redaction_profile": "hipaa_safe_harbor"
+}
+```
+
+**Rationale**: Prevents accidental PII/credential exposure to AI agents. Enforces principle of least privilege across HR and MR interfaces.
 
 ---
 

@@ -264,7 +264,7 @@ The [**Case Library** (cases/)](cases/README.md) provides detailed dual-native a
 - IoT: Cisco Meraki, Digital Twin Platforms
 - Geospatial: OGC/STAC
 
-Each case follows a consistent structure (Equivalence Scope, Current State, Pattern Gaps, Recommended Upgrades) to help implementers learn from existing patterns and plan their own dual-native migrations. See [cases/README.md](cases/README.md) for the full library.
+Each case follows a consistent structure (Equivalence Scope, Current State, Pattern Gaps, Recommended Upgrades) to help implementers learn from existing patterns and plan their own dual-native migrations. Case studies are tagged with their current conformance level (0-4) and recommended target level—see [CORE-SPEC § 6.2](CORE-SPEC.md#62-conformance-levels-04) for level definitions. See [cases/README.md](cases/README.md) for the full library.
 
 ---
 
@@ -282,7 +282,7 @@ Each case follows a consistent structure (Equivalence Scope, Current State, Patt
 | **DNC** | Dual-Native Catalog registry for discovery | § 5.4 |
 
 **Key Principles**:
-- Every resource has two views (HR + MR) of the same underlying data
+- Every resource has two views (HR + MR) of the same underlying data, with MR optionally offered in multiple profiles (structured, text, binary)
 - Bidirectional linking enables navigation between HR ↔ MR
 - Content validators (CID) enable zero-fetch optimization
 - Semantic equivalence guarantees HR and MR stay in sync
@@ -301,6 +301,7 @@ The pattern introduces two key concepts:
 
 **Machine Representation (MR)**: A machine-optimized representation for programmatic access
 - Examples: JSON APIs, Avro streams, FHIR resources, GeoJSON
+- MR may be offered in multiple **profiles** (structured JSON/Avro, text/Markdown, binary/CBOR) optimized for different consumption patterns, all sharing the same RID/CID and semantic content
 - Optimized for: Parsing efficiency, consistent schema, minimal overhead
 
 **Key Insight**: HR and MR are **two views of the same resource**, not separate systems.
