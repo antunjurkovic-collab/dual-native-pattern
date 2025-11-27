@@ -23,13 +23,13 @@ Bindings are **non-normative** and show concrete, copy-pasteable mappings for re
 - **Databases (SQL)**
   - [`db-sql.md`](./db-sql.md) – RID as primary key, CID as version/hash column, safe writes via `UPDATE ... WHERE id AND cid`, DNC via catalog table. (Draft skeleton)
 
+- **Streaming / Event Systems (Kafka, Pulsar, Kinesis)**
+  - [`streaming-kafka.md`](./streaming-kafka.md) – RID as message key/aggregate ID, CID as version/sequence, safe writes via prev_cid/new_cid envelope, DNC as catalog topic. (Draft)
+
 ## Planned Bindings (TODO)
 
 - **NoSQL Databases**
   - `db-nosql.md` – Document stores, key-value stores with version fields.
-
-- **Streaming / Event Systems (Kafka, etc.)**
-  - `streaming-kafka.md` – RID as key/aggregate, CID as sequence, DNC as compact index topic.
 
 - **Object Storage (S3-like)**
   - `object-s3.md` – RID as key, CID as ETag, DNC as manifest object.
@@ -62,4 +62,4 @@ Want to document a binding for your technology stack? Follow the template struct
 6. **Example Flows** - Concrete examples
 7. **Conformance Notes** - Requirements for this binding
 
-See [http-rest.md](http-rest.md) for a complete example.
+See [http-rest.md](http-rest.md) for a complete example, or [streaming-kafka.md](streaming-kafka.md) for an event-sourced / streaming example.
