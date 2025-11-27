@@ -1,6 +1,6 @@
 # The Dual-Native Pattern: An Architecture for Humans and AI
 
-**Document Version:** 1.2
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Whitepaper (Non-Normative)
 **Author:** Antun Jurkovikj
@@ -1429,7 +1429,7 @@ Special thanks to the AI and web standards communities for ongoing dialogue on h
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **For latest updates and companion documents, visit:** [Project Repository]
 

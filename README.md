@@ -1,6 +1,6 @@
 # The Dual-Native Pattern: Document Suite
 
-**Version:** 1.2
+**Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Draft for Review
 
@@ -371,9 +371,9 @@ Under the following terms:
 **We Welcome Feedback!** This is a community-driven effort in active development. Your input helps refine the pattern and improve the documentation.
 
 **How to Provide Feedback:**
-- **GitHub Issues**: https://github.com/antunjurkovic-collab/dual-native-pattern — Bug reports, clarifications, suggestions
-- **Discussions**: https://github.com/antunjurkovic-collab/dual-native-pattern — Questions, use cases, implementation experiences
-- **Email**: [contact email TBD] — Direct contact for private inquiries
+- **GitHub Issues**: https://github.com/antunjurkovic-collab/dual-native-pattern/issues — Bug reports, clarifications, suggestions
+- **Discussions**: https://github.com/antunjurkovic-collab/dual-native-pattern/discussions — Questions, use cases, implementation experiences
+- **Email**: antunjurkovic@gmail.com — Direct contact for private inquiries
 
 **What We're Looking For:**
 - Real-world implementation experiences (successes and challenges)
@@ -401,17 +401,17 @@ Under the following terms:
 
 | Document | Version | Last Updated | Status |
 |----------|---------|--------------|--------|
-| README.md | 1.2 | November 2025 | Draft |
-| WHITEPAPER.md | 1.2 | November 2025 | Draft for Review |
-| CORE-SPEC.md | 1.2 | November 2025 | Draft for Review |
-| IMPLEMENTATION-GUIDE.md | 1.2 | November 2025 | Draft for Review |
+| README.md | 1.3 | November 2025 | Draft |
+| WHITEPAPER.md | 1.3 | November 2025 | Draft for Review |
+| CORE-SPEC.md | 1.3 | November 2025 | Draft for Review |
+| IMPLEMENTATION-GUIDE.md | 1.3 | November 2025 | Draft for Review |
 
 **Versioning:** All documents will be versioned together. Updates to any document will increment the suite version.
 
 ---
 
 **Last Updated:** November 2025
-**Document Suite Version:** 1.2
+**Document Suite Version:** 1.3
 **Status:** Draft for Review
 
 **Start Reading:** [Whitepaper →](WHITEPAPER.md)

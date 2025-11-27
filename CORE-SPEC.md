@@ -1,6 +1,6 @@
 # Dual-Native Pattern: Core Architecture and Requirements
 
-**Document Version:** 1.2
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Specification (Normative)
 **Author:** Antun Jurkovikj
@@ -1832,7 +1832,7 @@ Such registrations are out of scope for this core specification.
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Normative Specification
 

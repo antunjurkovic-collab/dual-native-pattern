@@ -1,6 +1,6 @@
 # Dual-Native Pattern: Domain Implementation Guide
 
-**Document Version:** 1.2
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Implementation Guide (Non-Normative)
 **Author:** Antun Jurkovikj
@@ -2167,7 +2167,7 @@ This guide provides actionable implementation strategies for adopting the Dual-N
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.3
 **Last Updated:** November 2025
 **Status:** Implementation Guide (Non-Normative)
 
