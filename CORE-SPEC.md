@@ -240,6 +240,54 @@ The **Dual-Native Catalog (DNC)** is a registry that enumerates all dual-native 
 **Validator**: A system verifying CID or semantic equivalence
 - Responsibilities: Test HR ↔ MR equivalence, alert on drift
 
+### 2.8 AI-Native Content Core (Single MR Mode)
+
+A deployment is **AI-native** as soon as it exposes a canonical Machine Representation (MR) backed by Dual-Native primitives, even if there is only a single representation.
+
+In **Single MR Mode**, each resource has:
+
+- **RID (Resource Identity)**
+  A stable identifier for the logical resource.
+
+- **MR (Machine Representation)**
+  A canonical, deterministic, scrape-free representation designed for agents (e.g., normalized block graph, structured JSON).
+
+- **CID (Content Identity)**
+  A strong validator (e.g., hash over the canonical MR) that changes if and only if the MR changes, according to documented determinism rules.
+
+- **Safe Writes (Optimistic Concurrency)**
+  Mutations are preconditioned on the current CID. If the provided validator does not match the current CID, the write MUST fail with an explicit conflict signal. On success, the new CID MUST be returned so clients can chain edits.
+
+- **Zero-Fetch Reads (Conditional Reads)**
+  Read operations MAY include the last known CID. If the resource has not changed, the server MUST acknowledge this with a "not modified" response and omit the body.
+
+- **DNC (Dual-Native Catalog)**
+  A catalog SHOULD be provided to list resources and enable incremental synchronization. At minimum, entries SHOULD include `rid`, `cid`, and basic metadata (e.g., type, status, last_modified), with filters such as `since` and/or cursor-based pagination.
+
+- **Integrity over Final Bytes**
+  For full integrity, responses SHOULD include a digest over the final bytes delivered (e.g., SHA-256 of the response body) so clients can verify exact payload parity.
+
+#### 2.8.1 Normative Requirements (Single MR Mode)
+
+An implementation calling itself an **AI-Native Content Core**:
+
+- **MUST** have a stable RID per resource.
+- **MUST** define a canonical MR and document its determinism rules (ordering, excludes).
+- **MUST** compute CID as a deterministic function of the canonical MR and document the rules for when CID changes.
+- **MUST** support safe writes preconditioned on the current CID, with an explicit conflict outcome and a new CID on success.
+- **MUST** support zero-fetch reads based on the validator (not modified → body omitted).
+- **SHOULD** expose a DNC for incremental discovery (RID → CID + metadata).
+- **SHOULD** publish an integrity digest for 200 responses.
+
+#### 2.8.2 Relationship to Full Dual-Native
+
+Single MR Mode is **AI-native and Dual-Native-ready**, but **not yet fully Dual-Native**.
+
+A system becomes a **full Dual-Native deployment** once:
+
+- At least one additional native representation (HR or MR) is exposed for the same RID/CID snapshot, and
+- Each additional view is bound to the MR snapshot (same CID) and carries its own integrity information and zero-fetch semantics at its transport layer.
+
 ---
 
 ## 3. Architectural Overview

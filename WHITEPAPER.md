@@ -129,6 +129,86 @@ Most organizations have APIs for machines, but:
    - Not optimized for LLMs, crawlers, or archival systems
    - Missing features like template-invariant ETags, zero-fetch optimization
 
+### 2.5 Relationship to API Styles (REST, RPC, GraphQL)
+
+Dual-Native is not an alternative to REST, RPC, or GraphQL. Those focus on **how clients call the system** (resources vs. operations, fixed routes vs. flexible queries). Dual-Native addresses a different layer: **what the content model looks like for agents**, and how identity, versioning, safety, integrity, and discovery work — independent of call style.
+
+For AI and agent use cases, the critical properties are:
+
+- A **canonical Machine Representation (MR)** for each resource (deterministic, scrape-free).
+- A **strong Content Identity (CID)** that changes only when the MR changes (with determinism rules documented).
+- **Safe writes** via optimistic concurrency (validator on write, explicit conflict signal on mismatch).
+- **Zero-fetch reads** via validator revalidation (unchanged → "not modified").
+- **Integrity over final bytes** (digest) so clients can verify exact payload parity.
+- A **catalog (DNC)** for incremental discovery and synchronization (RID → CID + metadata, with filters such as `since`, `type`, `status`).
+
+Once these properties are in place, the choice of API style becomes a transport detail. The same Dual-Native content architecture can be projected through:
+
+- **REST-like routes**
+  e.g., `GET /posts/123`, `POST /posts/123/blocks`.
+
+- **RPC-style operations**
+  e.g., `UpdatePostBlocks`, `GenerateTitle`.
+
+- **GraphQL queries and mutations**
+  e.g., `query post { rid mr cid ... }`,
+  `mutation updatePost(validator: CID, patch: ...) { newCid ... }`.
+
+What matters for agents is not whether the client calls `GET /posts/123` or `mutation updatePost`, but that:
+
+- The resource has a stable **RID**.
+- The **MR** is well-defined and deterministic (with a profile/contract).
+- The **CID** is trustworthy and only changes when the MR changes.
+- Read/write semantics are clear and **validator-governed** (zero-fetch and safe writes).
+- Integrity is verifiable for the bytes that were actually delivered.
+- A catalog (DNC) exists so agents can efficiently discover resources and track what changed.
+
+#### Non-normative mappings
+
+Examples of how Dual-Native properties can be mapped onto common API styles:
+
+- **REST / HTTP**
+  - Validator = `ETag` (CID).
+  - Conditional read = `If-None-Match` → `304 Not Modified`.
+  - Safe write = `If-Match` → `412 Precondition Failed`.
+  - Integrity = `Content-Digest` (e.g., SHA-256) on 200 responses.
+
+- **GraphQL over HTTP**
+  - Expose CID as a field on resources.
+  - Implement safe writes via a `validator` argument on mutations that return `newCid` on success.
+  - Use application-level caching keyed by CID; integrity can be an explicit digest field.
+
+- **RPC / gRPC**
+  - Include the validator (CID) in request messages.
+  - Return `newCid` and optional telemetry on success.
+  - Use metadata or payload fields for integrity digests; use status codes or error types for "not modified" and "precondition failed" semantics.
+
+Representations (e.g., JSON MR, Markdown/TCT MR, additional HR views) are identified by **profiles** and bound to the same MR snapshot (CID). Each view carries its own integrity information and supports zero-fetch style revalidation in its chosen transport.
+
+This "style-agnostic" framing allows teams to standardize identity, versioning, safety, integrity, and discovery once, then expose that same content plane through REST, RPC, GraphQL, or other styles as needed.
+
+### 2.6 Dual-Native vs REST, GraphQL, and RPC (Informative)
+
+Most discussions focus on **how to ask for data**:
+
+- **REST:** "Give me the resource."
+- **GraphQL:** "Give me exactly these fields."
+- **RPC:** "Run this function."
+
+Dual-Native focuses on **what the state is**, and how agents can safely synchronize with it.
+
+A simplified comparison:
+
+| Feature            | Standard REST        | GraphQL                   | RPC                          | Dual-Native (AI-Native Core)             |
+|--------------------|----------------------|---------------------------|------------------------------|------------------------------------------|
+| Read efficiency    | ❌ Often bloated     | ✅ Client selects fields  | ⚠️ Custom per method        | ✅ MR pre-optimized for agents           |
+| Caching            | ✅ HTTP-native       | ❌ Hard (POST-heavy)      | ❌ Rarely standardized       | 👑 CID-based zero-fetch                   |
+| Write safety       | ❌ Last-write-wins   | ❌ Manual / ad-hoc        | ❌ Manual / ad-hoc          | 👑 Enforced optimistic concurrency (CID) |
+| Discovery          | ⚠️ Ad-hoc lists/docs | ⚠️ Schema-driven only    | ❌ No standard catalog       | ✅ DNC (RID → CID + metadata)            |
+| Philosophy         | "Here is a view."    | "Here is a graph."        | "Run this code."             | "Here is the truth (state + identity)." |
+
+Dual-Native does not replace REST, GraphQL, or RPC as transports. It gives them a **shared state model** — RID, MR, CID, safe writes, zero-fetch, and cataloging — so that any of these styles can be made safe and efficient for agents.
+
 ---
 
 ## 3. Why Now: The Shift to Dual-Native Systems

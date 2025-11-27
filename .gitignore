@@ -1,0 +1,23 @@
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary documentation
+*-draft.md
+*-temp.md
+NOTES.md
+
+# Build artifacts
+*.pdf.tmp
+*.html.tmp
