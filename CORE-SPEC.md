@@ -240,11 +240,11 @@ The **Dual-Native Catalog (DNC)** is a registry that enumerates all dual-native 
 **Validator**: A system verifying CID or semantic equivalence
 - Responsibilities: Test HR ↔ MR equivalence, alert on drift
 
-### 2.8 AI-Native Content Core (Single MR Mode)
+### 2.8 AI-Native Core (MR-Only Mode)
 
-A deployment is **AI-native** as soon as it exposes a canonical Machine Representation (MR) backed by Dual-Native primitives, even if there is only a single representation.
+The **AI-Native Core (MR-Only Mode)** describes a system that exposes a canonical Machine Representation (MR) backed by Dual-Native primitives, even in the absence of a Human Representation (HR).
 
-In **Single MR Mode**, each resource has:
+In this mode, each resource has:
 
 - **RID (Resource Identity)**
   A stable identifier for the logical resource.
@@ -264,12 +264,12 @@ In **Single MR Mode**, each resource has:
 - **DNC (Dual-Native Catalog)**
   A catalog SHOULD be provided to list resources and enable incremental synchronization. At minimum, entries SHOULD include `rid`, `cid`, and basic metadata (e.g., type, status, last_modified), with filters such as `since` and/or cursor-based pagination.
 
-- **Integrity over Final Bytes**
+- **Integrity Digest**
   For full integrity, responses SHOULD include a digest over the final bytes delivered (e.g., SHA-256 of the response body) so clients can verify exact payload parity.
 
-#### 2.8.1 Normative Requirements (Single MR Mode)
+#### 2.8.1 Normative Requirements (MR-Only Mode)
 
-An implementation calling itself an **AI-Native Content Core**:
+An implementation calling itself an **AI-Native Core (MR-Only Mode)**:
 
 - **MUST** have a stable RID per resource.
 - **MUST** define a canonical MR and document its determinism rules (ordering, excludes).
@@ -281,12 +281,14 @@ An implementation calling itself an **AI-Native Content Core**:
 
 #### 2.8.2 Relationship to Full Dual-Native
 
-Single MR Mode is **AI-native and Dual-Native-ready**, but **not yet fully Dual-Native**.
+AI-Native Core (MR-Only Mode) is **AI-native and Dual-Native-ready**, but **not yet fully Dual-Native**.
 
 A system becomes a **full Dual-Native deployment** once:
 
 - At least one additional native representation (HR or MR) is exposed for the same RID/CID snapshot, and
 - Each additional view is bound to the MR snapshot (same CID) and carries its own integrity information and zero-fetch semantics at its transport layer.
+
+**Note:** AI-Native Core (MR-Only Mode) is AI-native and Dual-Native-ready, but not fully Dual-Native until at least one additional native representation (HR or MR) is exposed and bound to the same RID/CID snapshot.
 
 ---
 
@@ -1150,74 +1152,87 @@ A conforming validator SHOULD:
 
 ### 6.2 Conformance Levels (0–4)
 
-Implementations typically evolve through **maturity levels**:
+Implementations typically evolve through **maturity levels**. The Dual-Native conformance levels can be interpreted as:
 
-#### 6.2.1 Level 0 – HR-Only Systems (Non-Conformant)
+#### 6.2.1 Level 0 – Legacy (Non-Conformant)
 
 **Characteristics**:
-- Only HR exists (HTML pages, dashboards)
-- No MR, no dual-native design
+- No canonical MR; only freeform or HR-style representations
 - AI systems must parse HR
 
 **Conformance**: Not conformant.
 
-#### 6.2.2 Level 1 – HR + MR, One-Way Link
+#### 6.2.2 Level 1 – MR Present (Informal)
 
 **Characteristics**:
-- Both HR and MR exist
-- One-way link (HR → MR **OR** MR → HR, but not both)
-- No DNC, discovery requires external knowledge
+- An MR exists, but there are no formal guarantees about CID, safe writes, or zero-fetch semantics
+- May or may not have HR
+- No formal validators or dual-native primitives
 
-**Conformance**: **Partially conformant** (violates bidirectional linking requirement).
+**Conformance**: Not conformant.
 
-**Recommendation**: Add reverse link to achieve Level 2.
+**Recommendation**: Implement Dual-Native primitives to achieve Level 1.5.
 
-#### 6.2.3 Level 2 – HR + MR, Bidirectional Links
-
-**Characteristics**:
-- Both HR and MR exist
-- Bidirectional linking (HR ↔ MR)
-- Discovery enabled via links
-- No CID, no zero-fetch optimization
-
-**Conformance**: **Conformant** (minimal requirements met).
-
-**Recommendation**: Add CID to achieve Level 3.
-
-#### 6.2.4 Level 3 – Optimized (Zero-Fetch)
+#### 6.2.3 Level 1.5 – AI-Native Core (MR-Only Mode)
 
 **Characteristics**:
-- CID validators exposed
-- Zero-fetch optimization enabled
+- MR + Dual-Native primitives for a single representation:
+  - Stable RID
+  - Canonical, deterministic MR
+  - Deterministic CID over MR
+  - Safe writes (CID-preconditioned, conflict on mismatch)
+  - Zero-fetch reads based on CID
+  - DNC and integrity digest recommended
+
+**Conformance**: **AI-native and Dual-Native-ready** (but not fully Dual-Native until HR or additional MR is added).
+
+**Recommendation**: Add HR or additional MR representation to achieve Level 2 (Full Dual-Native).
+
+#### 6.2.4 Level 2 – Full Dual-Native
+
+**Characteristics**:
+- AI-Native Core **plus** at least one additional native representation (HR or MR) bound to the same RID/CID snapshot
+- Semantic equivalence and profiles documented
+- Bidirectional linking between representations
+
+**Conformance**: **Fully conformant** (minimal Dual-Native requirements met).
+
+**Recommendation**: Optimize with zero-fetch to achieve Level 3.
+
+#### 6.2.5 Level 3 – Optimized
+
+**Characteristics**:
+- Dual-Native deployment where validator-based zero-fetch and catalog usage are effective at scale
+- High percentage of read requests complete via "not modified"
 - Semantic equivalence enforced via automated tests
 - Monitoring for drift
-- Dual-Native Catalog (DNC) published for efficient discovery
+- DNC published for efficient discovery
 
-**Conformance**: **Conformant** (recommended level for read-only systems).
+**Conformance**: **Highly conformant** (recommended level for read-heavy systems).
 
 **Recommendation**: Add write capabilities to achieve Level 4.
 
-#### 6.2.5 Level 4 – Agentic (Read/Write)
+#### 6.2.6 Level 4 – Multi-Native / Adaptive
 
 **Characteristics**:
-- All Level 3 capabilities (bidirectional linking, CID, zero-fetch, DNC)
+- Multiple profiles and views (HR + several MRs) bound to the same RID/CID snapshot
+- View registry and profile contracts
+- Adaptive sync strategies across domains (HTTP, streaming, DB, etc.)
 - **Structural Mutations**: Agents can modify system state via MR without corrupting HR
-- **Atomic Operations**: Insert, append, update, delete operations on MR
-- **Optimistic Concurrency**: Write operations support `If-Match` or equivalent to prevent lost updates
-- **Drift Prevention**: System ensures HR ↔ MR consistency after writes
-- **Actuator Access**: Agents can safely read AND write to the system
+- **Optimistic Concurrency**: Write operations support CID-preconditioned updates
+- **Drift Prevention**: System ensures multi-view consistency after writes
 
-**Conformance**: **Fully conformant** (agentic/best-in-class).
+**Conformance**: **Fully conformant** (multi-native/best-in-class).
 
 **Use Cases**:
-- **CMS**: AI agents editing content blocks (e.g., WordPress with DNI plugin)
-- **Fintech**: AI agents creating/updating transactions (e.g., Stripe API)
-- **IoT**: AI agents controlling device state (e.g., thermostat APIs)
-- **Version Control**: AI agents committing code changes (e.g., GitHub API)
+- **CMS**: AI agents editing content blocks with multiple output formats (e.g., WordPress with DNI plugin)
+- **Fintech**: AI agents creating/updating transactions with multiple representation formats
+- **IoT**: AI agents controlling device state with multiple protocol representations
+- **Version Control**: AI agents committing code changes with multiple serialization formats
 
-**Recommendation**: This is the target state for systems enabling autonomous AI agents.
+**Recommendation**: This is the target state for systems enabling autonomous AI agents with flexible representation strategies.
 
-#### 6.2.6 Informal Platform Mapping (Non-Normative)
+#### 6.2.7 Informal Platform Mapping (Non-Normative)
 
 Many production platforms exhibit characteristics of dual-native design, though without the formal guarantees defined in this specification:
 

@@ -7,6 +7,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3] - November 2025
+
+### Added
+
+**AI-Native Core Definition and Conformance**
+- **CORE-SPEC.md**:
+  - Added formal definition of **AI-Native Core (MR-Only Mode)** in § 2.8, including normative MUST/SHOULD requirements for RID, MR, CID, safe writes, zero-fetch reads, DNC, and integrity digests
+  - Mapped AI-Native Core and Dual-Native deployments into conformance levels (§ 6.2), introducing **Level 1.5** for MR-only, AI-native systems:
+    - Level 0: Legacy (no canonical MR)
+    - Level 1: MR Present (informal, no guarantees)
+    - **Level 1.5: AI-Native Core (MR-Only Mode)** - MR + Dual-Native primitives
+    - Level 2: Full Dual-Native (HR + MR)
+    - Level 3: Optimized (zero-fetch at scale)
+    - Level 4: Multi-Native / Adaptive (multiple profiles)
+
+**API Styles and MCP Integration**
+- **WHITEPAPER.md**:
+  - Clarified the **relationship to REST, RPC, and GraphQL** in § 2.5:
+    - Positioning Dual-Native as a **state model above API styles**, not a competing transport
+    - Added one-liner positioning: "REST/GraphQL/RPC answer 'How do I talk to you?' — Dual-Native answers 'What is the truth, and how do I stay in sync with it?'"
+    - Added style-agnostic mappings and expanded GraphQL guidance (RID+CID-keyed caching for POST-based queries)
+  - Added § 2.5.1 on how Dual-Native complements MCP and other agent-to-agent protocols:
+    - MCP focuses on tooling and invocation
+    - Dual-Native focuses on content state (identity, versioning, safe mutations)
+    - MCP servers can expose Dual-Native resources as tools (DNC for discovery, MR reads with CID caching, MR writes with validators)
+
+**Enhanced Comparison Table**
+- **WHITEPAPER.md**:
+  - Expanded comparison table in § 2.6:
+    - Softened REST read-efficiency wording from "Often bloated" to "Varies (often includes presentation overhead)"
+    - Added "Semantic Equivalence" row to highlight Dual-Native's unique guarantee of HR/MR views bound to same CID snapshot
+    - Added "Bidirectional Discovery" row to emphasize explicit HR↔MR links and DNC entries vs. ad-hoc conventions
+
+**Documentation**
+- **WHITEPAPER.md**:
+  - Added **AI-Native Content Core** to Appendix A (Glossary) for consistent naming and conformance usage
+
+### Changed
+
+**Terminology Refinement**
+- **CORE-SPEC.md**:
+  - Renamed § 2.8 from "AI-Native Content Core (Single MR Mode)" to "AI-Native Core (MR-Only Mode)" for clarity
+  - Updated subsection titles: § 2.8.1 "Normative Requirements (MR-Only Mode)", § 2.8.2 "Relationship to Full Dual-Native"
+  - Changed "Integrity over Final Bytes" to "Integrity Digest" for consistency
+
+**Conformance Levels Restructuring**
+- **CORE-SPEC.md**:
+  - Restructured conformance levels in § 6.2 to include Level 1.5 and clarify progression from MR-only to multi-native
+  - Updated Level 0 from "HR-Only Systems" to "Legacy" (no canonical MR)
+  - Updated Level 1 from "HR + MR, One-Way Link" to "MR Present (Informal)" (no Dual-Native guarantees)
+  - Updated Level 2 from "HR + MR, Bidirectional Links" to "Full Dual-Native" (AI-Native Core + additional representation)
+  - Updated Level 3 from "Optimized (Zero-Fetch)" to "Optimized" (zero-fetch effective at scale)
+  - Updated Level 4 from "Agentic (Read/Write)" to "Multi-Native / Adaptive" (multiple profiles and views)
+  - Renumbered § 6.2.6 to § 6.2.7 "Informal Platform Mapping"
+
+---
+
 ## [1.2] - November 2025
 
 ### Added

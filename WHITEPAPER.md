@@ -133,6 +133,11 @@ Most organizations have APIs for machines, but:
 
 Dual-Native is not an alternative to REST, RPC, or GraphQL. Those focus on **how clients call the system** (resources vs. operations, fixed routes vs. flexible queries). Dual-Native addresses a different layer: **what the content model looks like for agents**, and how identity, versioning, safety, integrity, and discovery work — independent of call style.
 
+In short:
+
+> REST / GraphQL / RPC answer **"How do I talk to you?"**
+> Dual-Native answers **"What is the truth, and how do I stay in sync with it?"**
+
 For AI and agent use cases, the critical properties are:
 
 - A **canonical Machine Representation (MR)** for each resource (deterministic, scrape-free).
@@ -176,7 +181,8 @@ Examples of how Dual-Native properties can be mapped onto common API styles:
 - **GraphQL over HTTP**
   - Expose CID as a field on resources.
   - Implement safe writes via a `validator` argument on mutations that return `newCid` on success.
-  - Use application-level caching keyed by CID; integrity can be an explicit digest field.
+  - Use application-level caching keyed by `RID + CID`, since HTTP caching is typically ineffective for POST-based GraphQL queries.
+  - Expose an explicit digest field if integrity verification is required.
 
 - **RPC / gRPC**
   - Include the validator (CID) in request messages.
@@ -186,6 +192,21 @@ Examples of how Dual-Native properties can be mapped onto common API styles:
 Representations (e.g., JSON MR, Markdown/TCT MR, additional HR views) are identified by **profiles** and bound to the same MR snapshot (CID). Each view carries its own integrity information and supports zero-fetch style revalidation in its chosen transport.
 
 This "style-agnostic" framing allows teams to standardize identity, versioning, safety, integrity, and discovery once, then expose that same content plane through REST, RPC, GraphQL, or other styles as needed.
+
+#### 2.5.1 Relationship to MCP and Agent-to-Agent Protocols
+
+Dual-Native complements emerging agent protocols such as the Model Context Protocol (MCP) and other A2A (agent-to-agent) systems.
+
+- MCP focuses on **tooling and invocation** (how agents call capabilities).
+- Dual-Native focuses on **content state** (how resources are identified, versioned, and safely mutated).
+
+An MCP server can expose Dual-Native resources as tools:
+
+- **DNC** entries become discovery/listing tools.
+- **MR reads** become resource retrieval tools, with CID used for caching across invocations.
+- **MR writes** become mutation tools that require a validator (CID) and return `newCid` on success.
+
+This allows agents to use MCP for orchestration, while relying on Dual-Native for a consistent, conflict-safe content plane.
 
 ### 2.6 Dual-Native vs REST, GraphQL, and RPC (Informative)
 
@@ -199,13 +220,15 @@ Dual-Native focuses on **what the state is**, and how agents can safely synchron
 
 A simplified comparison:
 
-| Feature            | Standard REST        | GraphQL                   | RPC                          | Dual-Native (AI-Native Core)             |
-|--------------------|----------------------|---------------------------|------------------------------|------------------------------------------|
-| Read efficiency    | ❌ Often bloated     | ✅ Client selects fields  | ⚠️ Custom per method        | ✅ MR pre-optimized for agents           |
-| Caching            | ✅ HTTP-native       | ❌ Hard (POST-heavy)      | ❌ Rarely standardized       | 👑 CID-based zero-fetch                   |
-| Write safety       | ❌ Last-write-wins   | ❌ Manual / ad-hoc        | ❌ Manual / ad-hoc          | 👑 Enforced optimistic concurrency (CID) |
-| Discovery          | ⚠️ Ad-hoc lists/docs | ⚠️ Schema-driven only    | ❌ No standard catalog       | ✅ DNC (RID → CID + metadata)            |
-| Philosophy         | "Here is a view."    | "Here is a graph."        | "Run this code."             | "Here is the truth (state + identity)." |
+| Feature                   | Standard REST                                  | GraphQL                   | RPC                          | Dual-Native (AI-Native Core)             |
+|---------------------------|------------------------------------------------|---------------------------|------------------------------|------------------------------------------|
+| Read efficiency           | ⚠️ Varies (often includes presentation overhead) | ✅ Client selects fields  | ⚠️ Custom per method        | ✅ MR pre-optimized for agents           |
+| Caching                   | ✅ HTTP-native                                 | ❌ Hard (POST-heavy)      | ❌ Rarely standardized       | 👑 CID-based zero-fetch                   |
+| Write safety              | ❌ Last-write-wins                             | ❌ Manual / ad-hoc        | ❌ Manual / ad-hoc          | 👑 Enforced optimistic concurrency (CID) |
+| Discovery                 | ⚠️ Ad-hoc lists/docs                           | ⚠️ Schema-driven only    | ❌ No standard catalog       | ✅ DNC (RID → CID + metadata)            |
+| Semantic equivalence      | ❌ Not addressed                               | ❌ Not addressed           | ❌ Not addressed             | 👑 HR/MR views bound to same CID snapshot |
+| Bidirectional discovery   | ⚠️ Possible via conventions (Link, docs)      | ❌ No standard HR↔MR linking | ❌ No standard HR↔MR linking | ✅ Explicit HR↔MR links and DNC entries   |
+| Philosophy                | "Here is a view."                              | "Here is a graph."        | "Run this code."             | "Here is the truth (state + identity)." |
 
 Dual-Native does not replace REST, GraphQL, or RPC as transports. It gives them a **shared state model** — RID, MR, CID, safe writes, zero-fetch, and cataloging — so that any of these styles can be made safe and efficient for agents.
 
@@ -1233,6 +1256,8 @@ The pattern is happening now. Join the movement toward efficient, AI-ready infra
 ---
 
 ## Appendix A. Glossary
+
+**AI-Native Content Core (AI-Native Core, MR-Only Mode)**: A deployment that exposes a canonical Machine Representation (MR) backed by Dual-Native primitives (RID, CID, safe writes, zero-fetch, and optionally DNC and integrity digests), even when no Human Representation (HR) exists. This mode is AI-native and Dual-Native-ready, but not fully Dual-Native until at least one additional native representation (HR or MR) is exposed and bound to the same RID/CID snapshot.
 
 **C-URL (Canonical URL)**: TCT-specific term for the human-facing URL in HTTP systems. Equivalent to HR in the general pattern.
 
