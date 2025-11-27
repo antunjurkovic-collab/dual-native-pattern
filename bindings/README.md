@@ -26,13 +26,13 @@ Bindings are **non-normative** and show concrete, copy-pasteable mappings for re
 - **Streaming / Event Systems (Kafka, Pulsar, Kinesis)**
   - [`streaming-kafka.md`](./streaming-kafka.md) – RID as message key/aggregate ID, CID as version/sequence, safe writes via prev_cid/new_cid envelope, DNC as catalog topic. (Draft)
 
+- **Object Storage (S3, GCS, Azure Blob)**
+  - [`object-s3.md`](./object-s3.md) – RID as object key, CID as metadata/content hash, conditional PUT/DELETE for safe writes, DNC as manifest object(s). (Draft)
+
 ## Planned Bindings (TODO)
 
 - **NoSQL Databases**
   - `db-nosql.md` – Document stores, key-value stores with version fields.
-
-- **Object Storage (S3-like)**
-  - `object-s3.md` – RID as key, CID as ETag, DNC as manifest object.
 
 Bindings can evolve faster than the core spec and can be extended by other implementers without changing the main documents.
 

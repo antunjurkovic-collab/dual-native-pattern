@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `bindings/http-rest.md`: Complete HTTP/REST binding (440 lines) with ETag/If-Match semantics, DNC, examples, and conformance checklists
   - `bindings/db-sql.md`: SQL database binding skeleton with RID/MR/CID mapping, safe writes via `WHERE cid = ?`, catalog table pattern
   - `bindings/streaming-kafka.md`: Streaming/Kafka binding (draft) with event envelope pattern, prev_cid/new_cid safe writes, catalog topic DNC, snapshot pattern, and CQRS/event sourcing guidance
+  - `bindings/object-s3.md`: Object storage binding (draft) for S3/GCS/Azure Blob with RID as object key, CID as metadata/content hash, conditional PUT/DELETE for safe writes, manifest-based DNC, and integration with DB/streaming/HTTP bindings
 - **WHITEPAPER.md**:
   - Condensed § 2.7 "Beyond HTTP: Domain Applicability" from 38 lines to 9 lines
   - Condensed § 2.8 "Technology Bindings" from 48 lines to 8 lines with reference to `/bindings`
