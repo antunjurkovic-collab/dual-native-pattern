@@ -232,7 +232,7 @@ A simplified comparison:
 
 Dual-Native does not replace REST, GraphQL, or RPC as transports. It gives them a **shared state model** — RID, MR, CID, safe writes, zero-fetch, and cataloging — so that any of these styles can be made safe and efficient for agents.
 
-### 2.7 Beyond HTTP: Dual-Native Across Paradigms
+### 2.7 Beyond HTTP: Domain Applicability
 
 Dual-Native principles apply wherever there are:
 
@@ -241,86 +241,18 @@ Dual-Native principles apply wherever there are:
 - Multiple consumers with different needs (human and machine views)
 - A need for efficient, safe synchronization (zero-fetch, safe writes, catalogs)
 
-The same six core properties:
+These properties are useful across many paradigms: web publishing, digital twins/IoT, legal contracts, DevOps/IaC, media editing, BI dashboards, headless CMS, and data products. The pattern does not require new protocols—it reuses existing mechanisms (IDs→RID, state→MR, versions→CID, catalogs→DNC) and provides a contract that ties them together.
 
-- Canonical **Machine Representation (MR)**
-- Strong **Content Identity (CID)**
-- **Safe writes** (validator-guarded mutations)
-- **Zero-fetch** reads (revalidate, don't re-download)
-- **Integrity digest** over final bytes
-- **DNC** (catalog) for incremental discovery
+### 2.8 Technology Bindings
 
-can be applied across many domains:
+Dual-Native is defined at the content/state level. Concrete bindings show how to map the core primitives (RID, MR, CID, validators, DNC, digests) onto specific technologies:
 
-| Domain / Paradigm        | Human Representation (HR)             | Machine Representation (MR)                     | Dual-Native Benefit                      |
-|--------------------------|---------------------------------------|------------------------------------------------|------------------------------------------|
-| Web publishing           | HTML / visual editor                  | JSON block graph / MR JSON                     | SEO + agents without scraping            |
-| Digital twin / IoT       | Physical controls / HMI dashboard     | MQTT / OPC-UA telemetry + config state         | Safety, drift detection, hybrid control  |
-| Legal / finance contracts| Signed PDF                            | Computable contract (JSON logic / code)        | Compliance, no text/code drift           |
-| DevOps / IaC             | Cloud console UI                      | Terraform / state files                        | Drift prevention, safe apply             |
-| Media / video editing    | Timeline UI, rendered pixels          | Scene metadata, EDL, subtitles                 | Fast search/edit via MR, not pixels      |
-| BI / dashboards          | Charts and graphs                     | SQL queries, cubes, structured result sets     | Agents read MR directly, not screenshots |
-| Headless CMS             | Preview UI                            | Structured content models (entries, fields)    | Already MR-first; DN adds CID + DNC      |
-| Data products / mesh     | Product dashboards, docs              | Dataset schema + contracts + snapshots         | Formalized contracts, CID-based sync     |
+- **HTTP / Web APIs:** REST, GraphQL, RPC, TCT
+- **Databases:** SQL, NoSQL (version columns, safe writes via WHERE clauses)
+- **Streaming:** Kafka, Pulsar, event sourcing (sequence numbers as CID)
+- **Object Storage:** S3, GCS (ETags, conditional PUTs, HEAD for zero-fetch)
 
-These paradigms do not require new protocols. They reuse their existing mechanisms:
-
-- IDs, keys, topics, paths → **RID**
-- Canonical state / structured payloads → **MR**
-- Version hashes, sequence numbers, revisions → **CID**
-- Catalogs, registries, indexes → **DNC**
-
-Dual-Native provides the **contract** that ties these pieces together so humans and agents can share and evolve state safely.
-
-### 2.8 Non-HTTP Binding Families (Informative)
-
-Dual-Native is defined at the content/state level. HTTP is one important binding (TCT, REST profiles), but the same primitives apply to other infrastructure layers. This section outlines four binding families that together form an end-to-end Dual-Native path.
-
-#### 2.8.1 Databases (SQL / NoSQL)
-
-- **RID** → primary key or composite key (e.g., `post_id`, `tenant_id + slug`).
-- **MR** → normalized row/document or a materialized view (JSON, Avro, FHIR, etc.).
-- **CID** → version column or hash computed over canonical MR (documented determinism rules).
-- **Safe writes** → `UPDATE ... WHERE rid = ? AND cid = ?`; if no rows affected, treat as conflict (precondition failed).
-- **Zero-fetch** → clients cache `(rid, cid)`; only re-query records whose CID changed according to a DNC or change feed.
-- **DNC** → catalog table or change stream listing `(rid, cid, last_modified, type/status)` with `since`/cursor filters.
-
-This is effectively **Dual-Native SQL**: the database becomes the AI-native content core, even before any HTTP API exists.
-
-#### 2.8.2 Streaming and Event Systems (Kafka, Pulsar, CDC)
-
-- **RID** → logical aggregate or resource key (e.g., `doc:123`, `user:42`).
-- **MR** → event schema or projection payload representing state transitions.
-- **CID** → version/sequence number or hash of the current MR snapshot.
-- **Safe writes** → producers include `prev_cid` in messages; consumers or compaction logic can reject or flag mismatched updates.
-- **Zero-fetch** → consumers resume from a known offset/CID; only process events when CID changes.
-- **DNC** → a compact topic or snapshot that periodically publishes `(rid, cid, last_offset)` for fast catch-up.
-
-Event sourcing / CQRS is a natural fit: aggregates map to RID, projections map to MR, and sequence numbers map to CID.
-
-#### 2.8.3 Object and File Storage (S3, GCS, Blob Stores)
-
-- **RID** → logical object key or path (e.g., `posts/123/state.json`).
-- **MR** → canonical JSON/CBOR stored as the object content.
-- **CID** → content hash over MR (may align with object `ETag` or checksum).
-- **Safe writes** → conditional PUT/DELETE based on current `ETag`/CID (compare-and-swap semantics).
-- **Zero-fetch** → clients perform HEAD or metadata-only operations to compare CIDs before downloading.
-- **DNC** → index object (e.g., `/catalog.json`) listing `(rid, cid, size, last_modified)` with optional `since` filters.
-
-Buckets become Dual-Native catalogs: agents sync only the objects whose CID changed since their last checkpoint.
-
-#### 2.8.4 HTTP and API Styles (REST, GraphQL, RPC)
-
-As described in § 2.5, HTTP bindings (REST, GraphQL, RPC, TCT) map:
-
-- `RID` → URLs / resource identifiers
-- `MR` → JSON/Markdown/TCT representations
-- `CID` → `ETag` or explicit validator fields
-- `Safe writes` → `If-Match` / validator arguments → conflict responses
-- `Zero-fetch` → `If-None-Match` / cache keys → "not modified" responses
-- `DNC` → catalog endpoints (sitemaps, index routes, list APIs)
-
-Taken together, these four families illustrate that Dual-Native is **not tied to a single layer**: the same state model can span storage, streams, APIs, and agents.
+**See [/bindings](/bindings)** for detailed, copy-pasteable binding profiles with examples, conformance checklists, and flow diagrams. Bindings are intentionally kept separate from this whitepaper to maintain focus on the core argument.
 
 ---
 

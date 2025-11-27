@@ -27,7 +27,7 @@ This specification defines:
 - Security and privacy considerations (summary)
 
 This specification **does not** define:
-- Protocol-specific implementations (see domain guides)
+- Protocol-specific implementations (see [/bindings](/bindings) for HTTP, SQL, streaming, and object storage profiles)
 - Encoding formats (JSON, Avro, Protobuf—left to implementers)
 - Authentication/authorization mechanisms (domain-specific)
 

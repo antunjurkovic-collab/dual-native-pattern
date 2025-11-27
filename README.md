@@ -41,6 +41,10 @@ dual-native-pattern/
 ├── CORE-SPEC.md             ← [2] Normative specification
 ├── IMPLEMENTATION-GUIDE.md  ← [3] Domain implementation cookbook (includes optional enhancements)
 ├── CHANGELOG.md             ← Version history
+├── bindings/                ← Technology bindings (HTTP, SQL, Streaming, Object Storage)
+│   ├── README.md
+│   ├── http-rest.md
+│   └── ...
 └── cases/                   ← Platform case studies
     ├── README.md
     ├── index.json           ← Machine-readable catalog

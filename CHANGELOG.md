@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+**Bindings Restructuring**
+- Created `/bindings` folder for technology-specific binding profiles:
+  - `bindings/README.md`: Overview of binding families (HTTP, Databases, Streaming, Object Storage)
+  - `bindings/http-rest.md`: Complete HTTP/REST binding with ETag/If-Match semantics, DNC, examples, and conformance checklist
+- **WHITEPAPER.md**:
+  - Condensed § 2.7 "Beyond HTTP: Domain Applicability" from 38 lines to 9 lines
+  - Condensed § 2.8 "Technology Bindings" from 48 lines to 8 lines with reference to `/bindings`
+  - Removed detailed binding tables and examples (moved to `/bindings/http-rest.md`)
+- **CORE-SPEC.md**:
+  - Added reference to `/bindings` folder in § 1.1 "Scope"
+
 **AI-Native Core Definition and Conformance**
 - **CORE-SPEC.md**:
   - Added formal definition of **AI-Native Core (MR-Only Mode)** in § 2.8, including normative MUST/SHOULD requirements for RID, MR, CID, safe writes, zero-fetch reads, DNC, and integrity digests
