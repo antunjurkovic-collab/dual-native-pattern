@@ -44,6 +44,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **WHITEPAPER.md**:
   - Added **AI-Native Content Core** to Appendix A (Glossary) for consistent naming and conformance usage
 
+**Cross-Paradigm Application**
+- **WHITEPAPER.md**:
+  - Added § 2.7 "Beyond HTTP: Dual-Native Across Paradigms":
+    - Domain-agnostic table showing DN principles applied to 8 paradigms (web publishing, IoT, legal/finance, DevOps/IaC, media/video, BI/dashboards, headless CMS, data products/mesh)
+    - Demonstrated how existing mechanisms (IDs, state, versions, catalogs) map to Dual-Native primitives
+  - Added § 2.8 "Non-HTTP Binding Families (Informative)":
+    - § 2.8.1 Databases (SQL/NoSQL): Dual-Native SQL with version columns, safe writes via WHERE clauses, catalog tables
+    - § 2.8.2 Streaming and Event Systems (Kafka, Pulsar, CDC): Event sourcing/CQRS mapping, sequence numbers as CID
+    - § 2.8.3 Object and File Storage (S3, GCS, Blob Stores): CID-based conditional PUTs, HEAD operations for zero-fetch
+    - § 2.8.4 HTTP and API Styles (REST, GraphQL, RPC): Cross-reference to § 2.5
+    - Established the "full path" across storage, streams, APIs, and agents
+
 ### Changed
 
 **Terminology Refinement**
