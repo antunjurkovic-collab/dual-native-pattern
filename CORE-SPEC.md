@@ -1249,9 +1249,9 @@ Many production platforms exhibit characteristics of dual-native design, though 
 
 **Note:** These platforms typically lack explicit semantic equivalence guarantees or formal conformance declarations. Level 4 platforms demonstrate write capabilities but may not implement all drift prevention mechanisms. This specification provides a framework to make such implementations fully conformant.
 
-#### 6.2.7 Legacy Encapsulation as Normative Migration Pattern
+#### 6.2.8 Legacy Encapsulation as Normative Migration Pattern
 
-**Requirement 6.2.7.1**: Legacy or unstructured resources SHOULD be represented as a single opaque unit in MR to enable incremental migration without requiring full content restructuring.
+**Requirement 6.2.8.1**: Legacy or unstructured resources SHOULD be represented as a single opaque unit in MR to enable incremental migration without requiring full content restructuring.
 
 **Pattern**: Legacy Encapsulation
 - Wrap legacy/unstructured content (HTML, plain text, binary) as a single "freeform" or "legacy" unit in MR

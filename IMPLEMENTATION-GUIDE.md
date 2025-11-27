@@ -1614,9 +1614,9 @@ Before deploying:
 
 These playbooks map directly to the conformance levels defined in the [Core Specification § 6.2](CORE-SPEC.md#62-conformance-levels-04).
 
-### 6.1 From HR-Only to Level 1 (HR + MR)
+### 6.1 From HR-Only to Level 1 (MR Present)
 
-**Target Conformance**: [Level 1 - HR + MR, One-Way Link](CORE-SPEC.md#622-level-1--hr--mr-one-way-link)
+**Target Conformance**: [Level 1 - MR Present (Informal)](CORE-SPEC.md#622-level-1--mr-present-informal)
 
 **Goal**: Add basic MR endpoints without breaking existing HR.
 
@@ -1659,9 +1659,9 @@ These playbooks map directly to the conformance levels defined in the [Core Spec
 
 **Example**: Stripe likely started at Level 0 (dashboard only), then added REST API endpoints (Level 1). Most platforms stop here without formal bidirectional linking.
 
-### 6.2 From Level 1 to Level 2 (Bidirectional Links)
+### 6.2 From Level 1 to Level 2 (Full Dual-Native)
 
-**Target Conformance**: [Level 2 - HR + MR, Bidirectional Links](CORE-SPEC.md#623-level-2--hr--mr-bidirectional-links)
+**Target Conformance**: [Level 2 - Full Dual-Native](CORE-SPEC.md#624-level-2--full-dual-native)
 
 **Goal**: Add HR ↔ MR links for discovery.
 
@@ -1690,9 +1690,9 @@ These playbooks map directly to the conformance levels defined in the [Core Spec
 
 **Example**: GitHub Web UI links to API documentation, and REST API includes repository URLs in responses. This achieves Level 2 bidirectional linking informally.
 
-### 6.3 From Level 2 to Level 3 (CID + Zero-Fetch)
+### 6.3 From Level 2 to Level 3 (Optimized)
 
-**Target Conformance**: [Level 3 - HR + MR + CID Synchronization](CORE-SPEC.md#624-level-3--hr--mr--cid-synchronization)
+**Target Conformance**: [Level 3 - Optimized](CORE-SPEC.md#625-level-3--optimized)
 
 **Goal**: Enable zero-fetch optimization.
 
@@ -1742,9 +1742,9 @@ These playbooks map directly to the conformance levels defined in the [Core Spec
 
 **Example**: Wikidata uses revision IDs as version validators, enabling Level 3-like behavior. Adding formal ETags and conditional request handling would achieve full Level 3 conformance.
 
-### 6.4 From Level 3 to Level 4 (DNC)
+### 6.4 From Level 3 to Level 4 (Multi-Native / Adaptive)
 
-**Target Conformance**: [Level 4 - Full Dual-Native with DNC](CORE-SPEC.md#625-level-4--full-dual-native-with-dnc)
+**Target Conformance**: [Level 4 - Multi-Native / Adaptive](CORE-SPEC.md#626-level-4--multi-native--adaptive)
 
 **Goal**: Publish Dual-Native Catalog for discovery.
 

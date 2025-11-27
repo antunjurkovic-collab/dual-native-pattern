@@ -88,7 +88,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated Level 2 from "HR + MR, Bidirectional Links" to "Full Dual-Native" (AI-Native Core + additional representation)
   - Updated Level 3 from "Optimized (Zero-Fetch)" to "Optimized" (zero-fetch effective at scale)
   - Updated Level 4 from "Agentic (Read/Write)" to "Multi-Native / Adaptive" (multiple profiles and views)
-  - Renumbered § 6.2.6 to § 6.2.7 "Informal Platform Mapping"
+  - Renumbered § 6.2.6 to § 6.2.7 "Informal Platform Mapping", added § 6.2.8 "Legacy Encapsulation"
+- **IMPLEMENTATION-GUIDE.md**:
+  - Updated migration playbook section headers and conformance references to match new level names
+  - Updated anchor links to conform to restructured CORE-SPEC section numbering
 
 ---
 
@@ -136,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added § 4.2.3 "Safe Writes & Validators" - Normative requirements for conditional mutations using validators (If-Match, version columns, offsets) with transport-specific mappings (HTTP, gRPC, databases, streaming)
   - Added § 4.8.1.1 "Addressable Content Units" - Support for sub-resource addressing and atomic operations (append, prepend, insert, replace, delete, patch) with domain-specific addressing schemes
   - Added § 7.5 "Access Tiers and Redaction" - Normative baseline for MR access control, redaction strategies (CID over redacted view vs CID excludes sensitive fields), and authorization requirements
-  - Added § 6.2.7 "Legacy Encapsulation" - Normative pattern for wrapping legacy/unstructured content as opaque units in MR, enabling incremental migration and safe coexistence
+  - Added § 6.2.8 "Legacy Encapsulation" - Normative pattern for wrapping legacy/unstructured content as opaque units in MR, enabling incremental migration and safe coexistence
   - Added § 6.5 "Observability & Conformance Testing" - Metrics recommendations (performance, efficiency, consistency, safety) and conformance test suite (CID determinism, semantic equivalence, conditional behavior, DNC freshness)
 
 - **IMPLEMENTATION-GUIDE.md**:
