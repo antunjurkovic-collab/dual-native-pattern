@@ -56,6 +56,7 @@ This document is intended for:
 - [Dual-Native Pattern: Whitepaper](WHITEPAPER.md): Non-normative context and motivation
 - [Domain Implementation Guide](IMPLEMENTATION-GUIDE.md): Non-normative implementation cookbook
 - [Optional Enhancements Guide](IMPLEMENTATION-GUIDE.md#8-optional-enhancements-advanced-patterns): Non-normative guidance on integrity, immutability, evented sync, and provenance
+- [Technology Bindings](/bindings): Non-normative profiles for HTTP, databases, streaming, and object storage
 - [TCT Internet-Draft](https://datatracker.ietf.org/doc/draft-jurkovikj-collab-tunnel/): HTTP-specific profile
 
 ### 1.4 Conventions and Terminology

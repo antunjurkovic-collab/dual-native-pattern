@@ -13,14 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Bindings Restructuring**
 - Created `/bindings` folder for technology-specific binding profiles:
-  - `bindings/README.md`: Overview of binding families (HTTP, Databases, Streaming, Object Storage)
-  - `bindings/http-rest.md`: Complete HTTP/REST binding with ETag/If-Match semantics, DNC, examples, and conformance checklist
+  - `bindings/README.md`: Overview of binding families with "Available" vs "Planned" sections
+  - `bindings/http-rest.md`: Complete HTTP/REST binding (440 lines) with ETag/If-Match semantics, DNC, examples, and conformance checklists
+  - `bindings/db-sql.md`: SQL database binding skeleton with RID/MR/CID mapping, safe writes via `WHERE cid = ?`, catalog table pattern
 - **WHITEPAPER.md**:
   - Condensed § 2.7 "Beyond HTTP: Domain Applicability" from 38 lines to 9 lines
   - Condensed § 2.8 "Technology Bindings" from 48 lines to 8 lines with reference to `/bindings`
   - Removed detailed binding tables and examples (moved to `/bindings/http-rest.md`)
 - **CORE-SPEC.md**:
   - Added reference to `/bindings` folder in § 1.1 "Scope"
+  - Added `/bindings` to § 1.3 "Informative References"
+- **cases/README.md**:
+  - Added "Technology Bindings" section linking to `/bindings` for generic patterns
+  - Distinguished product cases from technology bindings
 
 **AI-Native Core Definition and Conformance**
 - **CORE-SPEC.md**:

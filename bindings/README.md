@@ -1,28 +1,40 @@
-# Dual-Native Bindings: Overview
+# Dual-Native Bindings (Informative)
 
-This folder contains binding profiles showing how Dual-Native primitives map onto common transports and storage layers.
+This folder contains **binding profiles** that map the Dual-Native primitives:
 
-Each binding explains:
+- RID (Resource Identity)
+- MR (Machine Representation)
+- CID (Content Identity)
+- Validators & safe writes
+- Zero-fetch reads
+- DNC (Dual-Native Catalog)
+- Integrity digests
 
-- How RID, MR, CID, validators, DNC, and digests are represented
-- How to implement zero-fetch reads and safe writes
-- Example flows and minimal conformance requirements
+onto specific transports and storage layers.
 
-## Families
+The **core pattern** is defined in `CORE-SPEC.md` and `WHITEPAPER.md`.
+Bindings are **non-normative** and show concrete, copy-pasteable mappings for real systems.
 
-### HTTP / Web APIs
-- [HTTP / REST](http-rest.md) - JSON/HTML APIs using REST-style routes
+## Available Bindings
 
-### Databases
-- SQL (Coming soon)
-- NoSQL (Coming soon)
+- **HTTP / REST**
+  - [`http-rest.md`](./http-rest.md) – REST-ish JSON APIs over HTTP/1.1 and HTTP/2, with HR (HTML) and MR (JSON) views.
 
-### Streaming
-- Kafka (Coming soon)
-- Event Sourcing / CQRS (Coming soon)
+- **Databases (SQL)**
+  - [`db-sql.md`](./db-sql.md) – RID as primary key, CID as version/hash column, safe writes via `UPDATE ... WHERE id AND cid`, DNC via catalog table. (Draft skeleton)
 
-### Object Storage
-- S3-compatible (Coming soon)
+## Planned Bindings (TODO)
+
+- **NoSQL Databases**
+  - `db-nosql.md` – Document stores, key-value stores with version fields.
+
+- **Streaming / Event Systems (Kafka, etc.)**
+  - `streaming-kafka.md` – RID as key/aggregate, CID as sequence, DNC as compact index topic.
+
+- **Object Storage (S3-like)**
+  - `object-s3.md` – RID as key, CID as ETag, DNC as manifest object.
+
+Bindings can evolve faster than the core spec and can be extended by other implementers without changing the main documents.
 
 ## How to Use These Bindings
 

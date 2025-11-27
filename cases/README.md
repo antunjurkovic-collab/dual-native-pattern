@@ -11,6 +11,14 @@ Each case follows the same structure:
 - Recommended upgrades
 - Expected benefits and considerations
 
+## Technology Bindings
+
+For language/framework-agnostic technical mappings (how to implement Dual-Native over HTTP, SQL, streaming, object storage), see **[/bindings](/bindings)**.
+
+Examples:
+- **Generic HTTP/REST API** – A framework-agnostic REST API that exposes MR JSON, uses ETag/CID for zero-fetch and 412 for safe writes, and publishes a DNC endpoint for agents. See [/bindings/http-rest.md](/bindings/http-rest.md) for details.
+- **SQL Database** – Using version columns for CID, `UPDATE ... WHERE cid = ?` for safe writes, and catalog tables for DNC. See [/bindings/db-sql.md](/bindings/db-sql.md) for details.
+
 ## Cases Included
 
 ### 🏆 Reference Implementations
